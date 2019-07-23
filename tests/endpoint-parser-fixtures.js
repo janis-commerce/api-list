@@ -10,18 +10,27 @@ fixture.push({
 
 fixture.push({
 	description: 'It should throw if endpoint only has the rest api prefix',
-	endpoint: '/api',
+	endpoint: '',
 	error: true
 });
 
 fixture.push({
 	description: 'It should throw if endpoint is not a list endpoint',
-	endpoint: '/api/some-entity/1',
+	endpoint: '/some-entity/1',
 	error: true
 });
 
 fixture.push({
 	description: 'It pass for a simple list endpoint',
+	endpoint: '/some-entity',
+	result: {
+		modelName: 'some-entity',
+		parents: {}
+	}
+});
+
+fixture.push({
+	description: 'It pass for a simple list endpoint with the api prefix',
 	endpoint: '/api/some-entity',
 	result: {
 		modelName: 'some-entity',
@@ -31,6 +40,17 @@ fixture.push({
 
 fixture.push({
 	description: 'It pass for a list endpoint with one parent',
+	endpoint: '/some-parent/1/other-entity',
+	result: {
+		modelName: 'other-entity',
+		parents: {
+			someParent: '1'
+		}
+	}
+});
+
+fixture.push({
+	description: 'It pass for a list endpoint with one parent with the api prefix',
 	endpoint: '/api/some-parent/1/other-entity',
 	result: {
 		modelName: 'other-entity',
@@ -42,7 +62,7 @@ fixture.push({
 
 fixture.push({
 	description: 'It pass for a list endpoint with two parents',
-	endpoint: '/api/some-parent/1/other-parent/5/other-entity',
+	endpoint: '/some-parent/1/other-parent/5/other-entity',
 	result: {
 		modelName: 'other-entity',
 		parents: {
@@ -54,7 +74,7 @@ fixture.push({
 
 fixture.push({
 	description: 'It pass for non numeric IDs',
-	endpoint: '/api/some-parent/some-non-numeric-id/other-entity',
+	endpoint: '/some-parent/some-non-numeric-id/other-entity',
 	result: {
 		modelName: 'other-entity',
 		parents: {

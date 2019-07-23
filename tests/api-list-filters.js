@@ -21,7 +21,7 @@ describe('Api List Filters', () => {
 			getModelInstanceFake.throws('Model does not exist');
 
 			const apiListFilters = new ApiListFilters();
-			apiListFilters.endpoint = '/api/some-entity';
+			apiListFilters.endpoint = '/some-entity';
 			apiListFilters.data = {};
 			apiListFilters.headers = {};
 
@@ -34,7 +34,7 @@ describe('Api List Filters', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListFilters = new ApiListFilters();
-			apiListFilters.endpoint = '/api/some-entity';
+			apiListFilters.endpoint = '/some-entity';
 			apiListFilters.data = {};
 			apiListFilters.headers = {};
 
@@ -52,7 +52,7 @@ describe('Api List Filters', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListFilters = new ApiListFilters();
-			apiListFilters.endpoint = '/api/some-entity';
+			apiListFilters.endpoint = '/some-entity';
 			apiListFilters.data = {};
 			apiListFilters.headers = {};
 
@@ -76,7 +76,7 @@ describe('Api List Filters', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListFilters = new MyApiListFilters();
-			apiListFilters.endpoint = '/api/some-entity';
+			apiListFilters.endpoint = '/some-entity';
 			apiListFilters.data = {};
 			apiListFilters.headers = {};
 
@@ -109,7 +109,7 @@ describe('Api List Filters', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListFilters = new MyApiListFilters();
-			apiListFilters.endpoint = '/api/some-entity';
+			apiListFilters.endpoint = '/some-entity';
 			apiListFilters.data = {};
 			apiListFilters.headers = {};
 

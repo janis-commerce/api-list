@@ -15,13 +15,13 @@ describe('Api List Data', () => {
 
 	describe('Validation', () => {
 
-		it('Should throw if endpoint is not a valis rest endpoint', async () => {
+		it('Should throw if endpoint is not a valid rest endpoint', async () => {
 
 			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/';
+			apiListData.endpoint = '/';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -34,7 +34,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.throws('Model does not exist');
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -47,7 +47,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -62,7 +62,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {
 				'x-foo': 'bar'
@@ -79,7 +79,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -106,7 +106,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -127,7 +127,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				sortBy: 'id'
 			};
@@ -153,7 +153,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				sortBy: 'invalidField'
 			};
@@ -178,7 +178,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				sortBy: 'id',
 				sortDirection: 'unknownValue'
@@ -198,7 +198,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {
 				'x-janis-page': -10
@@ -217,7 +217,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {
 				'x-janis-page-size': -10
@@ -236,7 +236,7 @@ describe('Api List Data', () => {
 			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				filters: {
 					foo: 'bar'
@@ -263,7 +263,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				filters: {
 					foo: 'bar'
@@ -302,7 +302,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				filters: {
 					id: '10',
@@ -334,7 +334,7 @@ describe('Api List Data', () => {
 			});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -355,7 +355,7 @@ describe('Api List Data', () => {
 			});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -399,7 +399,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
 				sortBy: 'foo',
 				sortDirection: 'DESC',
@@ -464,7 +464,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-parent/1/some-entity';
+			apiListData.endpoint = '/some-parent/1/some-entity';
 			apiListData.data = {
 				sortBy: 'foo',
 				sortDirection: 'DESC',
@@ -509,7 +509,7 @@ describe('Api List Data', () => {
 			});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -545,7 +545,7 @@ describe('Api List Data', () => {
 			});
 
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -589,7 +589,7 @@ describe('Api List Data', () => {
 			});
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/api/some-entity';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
