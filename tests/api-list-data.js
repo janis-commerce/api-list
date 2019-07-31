@@ -517,9 +517,9 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			assert.deepStrictEqual(apiListData.response.body, {
-				rows: [],
-				total: 0
+			assert.deepStrictEqual(apiListData.response.body, []);
+			assert.deepStrictEqual(apiListData.response.headers, {
+				'x-janis-total': 0
 			});
 
 			sandbox.assert.calledOnce(getFake);
@@ -553,9 +553,9 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			assert.deepStrictEqual(apiListData.response.body, {
-				rows: [row],
-				total: 100
+			assert.deepStrictEqual(apiListData.response.body, [row]);
+			assert.deepStrictEqual(apiListData.response.headers, {
+				'x-janis-total': 100
 			});
 
 			sandbox.assert.calledOnce(getFake);
@@ -597,12 +597,12 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			assert.deepStrictEqual(apiListData.response.body, {
-				rows: [{
-					foo: 'bar',
-					moreFoo: true
-				}],
-				total: 100
+			assert.deepStrictEqual(apiListData.response.body, [{
+				foo: 'bar',
+				moreFoo: true
+			}]);
+			assert.deepStrictEqual(apiListData.response.headers, {
+				'x-janis-total': 100
 			});
 
 			sandbox.assert.calledOnce(getFake);
