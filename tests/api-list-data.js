@@ -497,6 +497,40 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should pass fields to select if the getter is defined', async () => {
+
+			const getFake = sandbox.fake.returns([]);
+			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+
+			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
+			getModelInstanceFake.returns({
+				get: getFake,
+				getTotals: getTotalsFake
+			});
+
+			class MyApiListData extends ApiListData {
+				get fieldsToSelect() {
+					return ['id', 'name', 'status'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-parent';
+			apiListData.data = {};
+			apiListData.headers = {};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sandbox.assert.calledOnce(getFake);
+			sandbox.assert.calledWithExactly(getFake, {
+				page: 1,
+				limit: 60,
+				fields: ['id', 'name', 'status']
+			});
+		});
+
 		it('Should return an empty rows array and zero total rows if passed params do not find any result', async () => {
 
 			const getFake = sandbox.fake.returns([]);
