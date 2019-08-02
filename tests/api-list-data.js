@@ -121,6 +121,74 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should return the limit and page as integers when headers are integers', async () => {
+
+			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
+			getModelInstanceFake.returns({});
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 60
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+
+			assert.deepStrictEqual(apiListData.dataWithDefaults, {});
+			assert.deepStrictEqual(apiListData.paging.getParams(apiListData.headersWithDefaults), {
+				limit: 60,
+				page: 1
+			});
+		});
+
+		it('Should return the limit and page as integers when headers are strings', async () => {
+
+			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
+			getModelInstanceFake.returns({});
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page': '1',
+				'x-janis-page-size': '60'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+
+			assert.deepStrictEqual(apiListData.dataWithDefaults, {});
+			assert.deepStrictEqual(apiListData.paging.getParams(apiListData.headersWithDefaults), {
+				limit: 60,
+				page: 1
+			});
+		});
+
+		it('Should throw if headers are invalid strings', async () => {
+
+			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
+			getModelInstanceFake.returns({});
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page': '1page',
+				'x-janis-page-size': '60'
+			};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('x-janis-page')
+					&& !!err.message.includes('1page');
+			});
+		});
+
 		it('Should throw if sort field is passed and there are no sortable fields', async () => {
 
 			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
@@ -494,6 +562,40 @@ describe('Api List Data', () => {
 					id2: 100,
 					someParent: 1
 				}
+			});
+		});
+
+		it('Should pass fields to select if the getter is defined', async () => {
+
+			const getFake = sandbox.fake.returns([]);
+			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+
+			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
+			getModelInstanceFake.returns({
+				get: getFake,
+				getTotals: getTotalsFake
+			});
+
+			class MyApiListData extends ApiListData {
+				get fieldsToSelect() {
+					return ['id', 'name', 'status'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-parent';
+			apiListData.data = {};
+			apiListData.headers = {};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sandbox.assert.calledOnce(getFake);
+			sandbox.assert.calledWithExactly(getFake, {
+				page: 1,
+				limit: 60,
+				fields: ['id', 'name', 'status']
 			});
 		});
 
