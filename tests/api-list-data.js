@@ -169,7 +169,7 @@ describe('Api List Data', () => {
 			});
 		});
 
-		it('Should throw if headers are invalid strings', async () => {
+		it('Should throw if page header is invalid strings', async () => {
 
 			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
 			getModelInstanceFake.returns({});
@@ -178,14 +178,32 @@ describe('Api List Data', () => {
 			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {
-				'x-janis-page': '1page',
-				'x-janis-page-size': '60'
+				'x-janis-page': '1page'
 			};
 
 			await assert.rejects(() => apiListData.validate(), err => {
 				return err instanceof ApiListError
 					&& !!err.message.includes('x-janis-page')
 					&& !!err.message.includes('1page');
+			});
+		});
+
+		it('Should throw if page size header is invalid strings', async () => {
+
+			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
+			getModelInstanceFake.returns({});
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page-size': '60pages'
+			};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('x-janis-page-size')
+					&& !!err.message.includes('60pages');
 			});
 		});
 
