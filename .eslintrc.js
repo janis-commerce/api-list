@@ -22,10 +22,6 @@ module.exports = {
 		sourceType: 'script'
 	},
 
-	settings: {
-		'import/core-modules': ['aws-sdk', 'lodash', 'yamljs', 'openapi-schema-validator']
-	},
-
 	rules: {
 		'operator-linebreak': 0,
 		'no-continue': 0,
