@@ -1,8 +1,10 @@
 'use strict';
 
 const assert = require('assert');
+const path = require('path');
 
-const sandbox = require('sinon').createSandbox();
+const sinon = require('sinon');
+const mockRequire = require('mock-require');
 
 const { ApiListData } = require('..');
 const { ApiListError } = require('../lib');
@@ -10,15 +12,25 @@ const { ApiListError } = require('../lib');
 describe('Api List Data', () => {
 
 	afterEach(() => {
-		sandbox.restore();
+		sinon.restore();
 	});
+
+	class Model {
+	}
+
+	const modelPath = path.join(process.cwd(), process.env.MS_PATH || '', 'models', 'some-entity');
 
 	describe('Validation', () => {
 
-		it('Should throw if endpoint is not a valid rest endpoint', async () => {
+		before(() => {
+			mockRequire(modelPath, Model);
+		});
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
+		after(() => {
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should throw if endpoint is not a valid rest endpoint', async () => {
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/';
@@ -30,11 +42,8 @@ describe('Api List Data', () => {
 
 		it('Should throw if model is not found', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.throws('Model does not exist');
-
 			const apiListData = new ApiListData();
-			apiListData.endpoint = '/some-entity';
+			apiListData.endpoint = '/some-other-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -42,9 +51,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should validate if no data is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -56,10 +62,7 @@ describe('Api List Data', () => {
 			assert.strictEqual(validation, undefined);
 		});
 
-		it('Shouldn\'t thow because of unknown headers', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
+		it('Shouldn\'t throw because of unknown headers', async () => {
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -74,9 +77,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should set default values if no data is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -95,9 +95,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should set default sort direction if only sort field is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			class MyApiListData extends ApiListData {
 				get sortableFields() {
@@ -123,9 +120,6 @@ describe('Api List Data', () => {
 
 		it('Should return the limit and page as integers when headers are integers', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
-
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
@@ -146,9 +140,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should return the limit and page as integers when headers are strings', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -171,9 +162,6 @@ describe('Api List Data', () => {
 
 		it('Should throw if page header is invalid strings', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
-
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
@@ -189,9 +177,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should throw if page size header is invalid strings', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -209,9 +194,6 @@ describe('Api List Data', () => {
 
 		it('Should throw if sort field is passed and there are no sortable fields', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
-
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
 			apiListData.data = {
@@ -228,9 +210,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should throw if invalid sort field is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			class MyApiListData extends ApiListData {
 				get sortableFields() {
@@ -253,9 +232,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should throw if invalid sort direction is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			class MyApiListData extends ApiListData {
 				get sortableFields() {
@@ -280,9 +256,6 @@ describe('Api List Data', () => {
 
 		it('Should throw if invalid page is passed', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
-
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
@@ -299,9 +272,6 @@ describe('Api List Data', () => {
 
 		it('Should throw if invalid page size is passed', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
-
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
@@ -317,9 +287,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should throw if filter is passed and there are no available filters', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -338,9 +305,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should throw if invalid filter is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			class MyApiListData extends ApiListData {
 				get availableFilters() {
@@ -366,9 +330,6 @@ describe('Api List Data', () => {
 		});
 
 		it('Should validate if valid data is passed', async () => {
-
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({});
 
 			class MyApiListData extends ApiListData {
 
@@ -412,9 +373,8 @@ describe('Api List Data', () => {
 
 		it('Should throw an internal error if get fails', async () => {
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: () => {
+			mockRequire(modelPath, class MyModel {
+				async get() {
 					throw new Error('Some internal error');
 				}
 			});
@@ -427,18 +387,21 @@ describe('Api List Data', () => {
 			await apiListData.validate();
 
 			await assert.rejects(() => apiListData.process());
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should pass the default parameters to the model get', async () => {
 
-			const getFake = sandbox.fake.returns([]);
-			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -449,23 +412,26 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should pass client defined parameters to the model get', async () => {
 
-			const getFake = sandbox.fake.returns([]);
-			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
 
 			class MyApiListData extends ApiListData {
 
@@ -503,8 +469,8 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 2,
 				limit: 20,
 				order: {
@@ -515,18 +481,21 @@ describe('Api List Data', () => {
 					id2: 100
 				}
 			});
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should pass endpoint parents to the model get as filters', async () => {
 
-			const getFake = sandbox.fake.returns([]);
-			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
 
 			class MyApiListData extends ApiListData {
 
@@ -568,8 +537,8 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 2,
 				limit: 20,
 				order: {
@@ -581,18 +550,21 @@ describe('Api List Data', () => {
 					someParent: 1
 				}
 			});
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should pass fields to select if the getter is defined', async () => {
 
-			const getFake = sandbox.fake.returns([]);
-			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
 
 			class MyApiListData extends ApiListData {
 				get fieldsToSelect() {
@@ -601,7 +573,7 @@ describe('Api List Data', () => {
 			}
 
 			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/some-parent';
+			apiListData.endpoint = '/some-entity';
 			apiListData.data = {};
 			apiListData.headers = {};
 
@@ -609,24 +581,162 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60,
 				fields: ['id', 'name', 'status']
 			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use regular model when there is no session in API', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+				get fieldsToSelect() {
+					return ['id', 'name', 'status'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				page: 1,
+				limit: 60,
+				fields: ['id', 'name', 'status']
+			});
+
+			assert.deepEqual(apiListData.model.session, undefined);
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use regular model when API session has no client', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+				get fieldsToSelect() {
+					return ['id', 'name', 'status'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {};
+			apiListData.session = {
+				client: Promise.resolve()
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				page: 1,
+				limit: 60,
+				fields: ['id', 'name', 'status']
+			});
+
+			assert.deepEqual(apiListData.model.session, undefined);
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use injected model when API session has a client', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+				get fieldsToSelect() {
+					return ['id', 'name', 'status'];
+				}
+			}
+
+			const mockClient = {};
+
+			const sessionMock = {
+				client: Promise.resolve(mockClient)
+			};
+
+			mockClient.getInstance = sinon.fake(() => {
+				const modelInstance = new MyModel();
+				modelInstance.session = sessionMock;
+
+				return modelInstance;
+			});
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {};
+			apiListData.session = sessionMock;
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				page: 1,
+				limit: 60,
+				fields: ['id', 'name', 'status']
+			});
+
+			sinon.assert.calledOnce(mockClient.getInstance);
+			sinon.assert.calledWithExactly(mockClient.getInstance, MyModel);
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should return an empty rows array and zero total rows if passed params do not find any result', async () => {
 
-			const getFake = sandbox.fake.returns([]);
-			const getTotalsFake = sandbox.fake.returns({ total: 0 });
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -642,11 +752,13 @@ describe('Api List Data', () => {
 				'x-janis-total': 0
 			});
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should return a rows array and total rows if passed params do find results', async () => {
@@ -655,14 +767,20 @@ describe('Api List Data', () => {
 				foo: 'bar'
 			};
 
-			const getFake = sandbox.fake.returns([row]);
-			const getTotalsFake = sandbox.fake.returns({ total: 100 });
+			class MyModel {
+				async get() {
+					return [row];
+				}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+				async getTotals() {
+					return { total: 100 };
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+			sinon.spy(MyModel.prototype, 'getTotals');
 
 			const apiListData = new ApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -678,11 +796,15 @@ describe('Api List Data', () => {
 				'x-janis-total': 100
 			});
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
+
+			sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+			mockRequire.stop(modelPath);
 		});
 
 		it('Should return a rows array (formatted) and total rows if passed params do find results', async () => {
@@ -699,14 +821,20 @@ describe('Api List Data', () => {
 				foo: 'bar'
 			};
 
-			const getFake = sandbox.fake.returns([row]);
-			const getTotalsFake = sandbox.fake.returns({ total: 100 });
+			class MyModel {
+				async get() {
+					return [row];
+				}
 
-			const getModelInstanceFake = sandbox.stub(ApiListData.prototype, '_getModelInstance');
-			getModelInstanceFake.returns({
-				get: getFake,
-				getTotals: getTotalsFake
-			});
+				async getTotals() {
+					return { total: 100 };
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+			sinon.spy(MyModel.prototype, 'getTotals');
 
 			const apiListData = new MyApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -725,11 +853,15 @@ describe('Api List Data', () => {
 				'x-janis-total': 100
 			});
 
-			sandbox.assert.calledOnce(getFake);
-			sandbox.assert.calledWithExactly(getFake, {
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
+
+			sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+			mockRequire.stop(modelPath);
 		});
 	});
 
