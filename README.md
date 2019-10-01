@@ -51,30 +51,6 @@ class MyApiListData extends ApiListData {
 module.exports = MyApiListData;
 ```
 
-- API List Filters
-```js
-'use strict';
-
-const { ApiListFilters } = require('@janiscommerce/api-list');
-
-class MyApiListFilters extends ApiListFilters {
-
-	get getFiltersValues() {
-		return {
-			someField: {
-				options: [
-					{ label: 'some.label1', value: 1 },
-					{ label: 'some.label2', value: 2 }
-				]
-			}
-		};
-	}
-
-}
-
-module.exports = MyApiListFilters;
-```
-
 ## List APIs with parents
 
 If you have for example, a list API for a sub-entity of one specific record, the parent will be automatically be added as a filter.
