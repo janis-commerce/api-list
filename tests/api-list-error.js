@@ -4,7 +4,7 @@ const assert = require('assert');
 
 const { ApiListError } = require('../lib');
 
-describe('Api Session Error', () => {
+describe('Api List Error', () => {
 
 	it('Should accept a message error and a code', () => {
 		const error = new ApiListError('Some error', ApiListError.codes.INVALID_REQUEST_DATA);
