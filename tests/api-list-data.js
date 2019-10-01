@@ -630,7 +630,7 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
-		it('Should use regular model when API session has no client', async () => {
+		it('Should use injected model when API has a session', async () => {
 
 			class MyModel {
 				async get() {
@@ -647,61 +647,15 @@ describe('Api List Data', () => {
 					return ['id', 'name', 'status'];
 				}
 			}
-
-			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/some-entity';
-			apiListData.data = {};
-			apiListData.headers = {};
-			apiListData.session = {
-				client: Promise.resolve()
-			};
-
-			await apiListData.validate();
-
-			await apiListData.process();
-
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
-				page: 1,
-				limit: 60,
-				fields: ['id', 'name', 'status']
-			});
-
-			assert.deepEqual(apiListData.model.session, undefined);
-
-			mockRequire.stop(modelPath);
-		});
-
-		it('Should use injected model when API session has a client', async () => {
-
-			class MyModel {
-				async get() {
-					return [];
-				}
-			}
-
-			mockRequire(modelPath, MyModel);
-
-			sinon.spy(MyModel.prototype, 'get');
-
-			class MyApiListData extends ApiListData {
-				get fieldsToSelect() {
-					return ['id', 'name', 'status'];
-				}
-			}
-
-			const mockClient = {};
 
 			const sessionMock = {
-				client: Promise.resolve(mockClient)
+				getSessionInstance: sinon.fake(() => {
+					const modelInstance = new MyModel();
+					modelInstance.session = sessionMock;
+
+					return modelInstance;
+				})
 			};
-
-			mockClient.getInstance = sinon.fake(() => {
-				const modelInstance = new MyModel();
-				modelInstance.session = sessionMock;
-
-				return modelInstance;
-			});
 
 			const apiListData = new MyApiListData();
 			apiListData.endpoint = '/some-entity';
@@ -720,8 +674,8 @@ describe('Api List Data', () => {
 				fields: ['id', 'name', 'status']
 			});
 
-			sinon.assert.calledOnce(mockClient.getInstance);
-			sinon.assert.calledWithExactly(mockClient.getInstance, MyModel);
+			sinon.assert.calledOnce(sessionMock.getSessionInstance);
+			sinon.assert.calledWithExactly(sessionMock.getSessionInstance, MyModel);
 
 			mockRequire.stop(modelPath);
 		});
