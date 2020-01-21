@@ -1,6 +1,6 @@
 {
   "name": "@janiscommerce/api-list",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A package to handle JANIS List APIs",
   "main": "lib/index.js",
   "scripts": {
@@ -37,7 +37,7 @@
     "@janiscommerce/model": "^3.0.0"
   },
   "dependencies": {
-    "@janiscommerce/api": "^4.1.1",
+    "@janiscommerce/api": "^4.2.1",
     "superstruct": "^0.6.1"
   }
 }
