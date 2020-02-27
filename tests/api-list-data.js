@@ -570,6 +570,11 @@ describe('Api List Data', () => {
 						{
 							name: 'someParent',
 							valueMapper: Number
+						},
+						{
+							name: 'hasSubProperty',
+							internalName: (filterConfiguration, mappedValue, originalValue) => `rootProperty.${originalValue}`,
+							valueMapper: () => true
 						}
 					];
 				}
@@ -586,7 +591,8 @@ describe('Api List Data', () => {
 				sortDirection: 'DESC',
 				filters: {
 					id: '10',
-					id2: '100'
+					id2: '100',
+					hasSubProperty: 'myProp'
 				}
 			};
 			apiListData.headers = {
@@ -608,7 +614,8 @@ describe('Api List Data', () => {
 				filters: {
 					id: '10',
 					id2: 100,
-					someParent: 1
+					someParent: 1,
+					'rootProperty.myProp': true
 				}
 			});
 

@@ -13,7 +13,6 @@ npm install @janiscommerce/api-list
 
 ## Usage
 
-- API List Data
 ```js
 'use strict';
 
@@ -38,6 +37,11 @@ module.exports = class MyApiListData extends ApiListData {
 			{
 				name: 'quantity',
 				valueMapper: Number
+			},
+			{
+				name: 'hasSubProperty',
+				internalName: (filterConfiguration, mappedValue, originalValue) => `rootProperty.${originalValue}`,
+				valueMapper: () => true
 			}
 		];
 	}
@@ -75,9 +79,10 @@ This is used to indicate which fields can be used to sort the list. Any other so
 ### get availableFilters()
 This is used to indicate which fields can be used to filter the list. Any other filter will return a 400 status code.
 Filters can be customized by passing an object with the following properties:
-- `name`: The name of the filter param. This property is required.
-- `internalName`: The name of the field, as defined in the model. This should not be defined in case it's equal to `name`
-- `valueMapper`: A function to be called on the filter's value. This is optional.
+- `name`: (string) The name of the filter param. This property is required.
+- `internalName`: (string|function) The name of the field, as defined in the model. This should not be defined in case it's equal to `name`.
+If it's a function (_since 3.1.0_), it must return a string and it will receive the following arguments: `(filterConfiguration, mappedValue, originalValue)`
+- `valueMapper`: (function) A function to be called on the filter's value. This is optional.
 
 ### async formatRows(rows)
 You can use this to format your records before they are returned.
