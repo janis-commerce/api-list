@@ -19,7 +19,7 @@ npm install @janiscommerce/api-list
 
 const { ApiListData } = require('@janiscommerce/api-list');
 
-class MyApiListData extends ApiListData {
+module.exports = class MyApiListData extends ApiListData {
 
 	get fieldsToSelect() {
 		return ['id', 'name', 'status'];
@@ -36,7 +36,7 @@ class MyApiListData extends ApiListData {
 		return [
 			'id',
 			{
-				name: 'status',
+				name: 'quantity',
 				valueMapper: Number
 			}
 		];
@@ -46,9 +46,7 @@ class MyApiListData extends ApiListData {
 		return rows.map(row => ({ ...row, oneMoreField: true }));
 	}
 
-}
-
-module.exports = MyApiListData;
+};
 ```
 
 ## List APIs with parents
@@ -84,3 +82,63 @@ Filters can be customized by passing an object with the following properties:
 ### async formatRows(rows)
 You can use this to format your records before they are returned.
 For example, mapping DB friendly values to user friendly values, add default values, translation keys, etc.
+
+## Common filter value mappers
+
+_Since 3.1.0_
+
+This lib also exports some common filter value mappers (to use as `valueMapper` in your `availableFilters` getter) so you don't need to implement them yourself.
+
+They are explained here with examples:
+
+```js
+'use strict';
+
+const {
+	ApiListData,
+	FilterMappers: {
+		booleanMapper,
+		dateMapper,
+		startOfTheDayMapper,
+		endOfTheDayMapper,
+		searchMapper,
+		customTypeMapper
+	}
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	get availableFilters() {
+		return [
+			{
+				name: 'canDoSomething',
+				valueMapper: booleanMapper // Maps '0', 'false', '', and false to false. Any other value is mapped to true.
+			},
+			{
+				name: 'someExactDate',
+				valueMapper: dateMapper // Maps to a date object
+			},
+			{
+				name: 'dateCreatedDay',
+				internalName: 'dateCreatedFrom',
+				valueMapper: startOfTheDayMapper // Maps to a date object at the start of the day
+			},
+			{
+				name: 'dateCreatedDay',
+				internalName: 'dateCreatedTo',
+				valueMapper: endOfTheDayMapper // Maps to a date object at the end of the day
+			},
+			{
+				name: 'name',
+				valueMapper: searchMapper // Maps to an object like this: { type: 'search', value }
+			},
+			{
+				name: 'isOlderThan',
+				internalName: 'age',
+				valueMapper: customTypeMapper('greater') // This returns a mapper like this: value => ({ type: 'greater', value })
+			}
+		];
+	}
+
+};
+```
