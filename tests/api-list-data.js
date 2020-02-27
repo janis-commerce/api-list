@@ -18,15 +18,21 @@ describe('Api List Data', () => {
 	class Model {
 	}
 
-	const modelPath = path.join(process.cwd(), process.env.MS_PATH || '', 'models', 'some-entity');
+	const modelPath = path.join(process.cwd(), '', 'models', 'some-entity');
+	const modelPathWithMsPath = path.join(process.cwd(), 'src', 'models', 'some-entity');
 
 	describe('Validation', () => {
 
+		let env;
+
 		before(() => {
+			env = { ...process.env };
+			process.env.MS_PATH = '';
 			mockRequire(modelPath, Model);
 		});
 
 		after(() => {
+			process.env = env;
 			mockRequire.stop(modelPath);
 		});
 
@@ -369,11 +375,66 @@ describe('Api List Data', () => {
 		});
 	});
 
+	describe('Validation with MS_PATH', () => {
+
+		let env;
+
+		before(() => {
+			env = { ...process.env };
+			process.env.MS_PATH = 'src';
+			mockRequire(modelPathWithMsPath, Model);
+		});
+
+		after(() => {
+			process.env = env;
+			mockRequire.stop(modelPathWithMsPath);
+		});
+
+		it('Should validate if valid data is passed', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'id',
+						{
+							name: 'id2',
+							valueMapper: Number
+						}
+					];
+				}
+
+				get sortableFields() {
+					return ['foo'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					id: '10',
+					id2: '100'
+				},
+				sortBy: 'foo',
+				sortDirection: 'asc'
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+		});
+	});
+
 	describe('Process', () => {
 
 		it('Should throw an internal error if get fails', async () => {
 
-			mockRequire(modelPath, class MyModel {
+			mockRequire(modelPathWithMsPath, class MyModel {
 				async get() {
 					throw new Error('Some internal error');
 				}
@@ -388,7 +449,7 @@ describe('Api List Data', () => {
 
 			await assert.rejects(() => apiListData.process());
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should pass the default parameters to the model get', async () => {
@@ -399,7 +460,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -418,7 +479,7 @@ describe('Api List Data', () => {
 				limit: 60
 			});
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should pass client defined parameters to the model get', async () => {
@@ -429,7 +490,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -482,7 +543,7 @@ describe('Api List Data', () => {
 				}
 			});
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should pass endpoint parents to the model get as filters', async () => {
@@ -493,7 +554,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -551,7 +612,7 @@ describe('Api List Data', () => {
 				}
 			});
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should pass fields to select if the getter is defined', async () => {
@@ -562,7 +623,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -588,7 +649,7 @@ describe('Api List Data', () => {
 				fields: ['id', 'name', 'status']
 			});
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should use regular model when there is no session in API', async () => {
@@ -599,7 +660,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -627,7 +688,7 @@ describe('Api List Data', () => {
 
 			assert.deepEqual(apiListData.model.session, undefined);
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should use injected model when API has a session', async () => {
@@ -638,7 +699,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -677,7 +738,7 @@ describe('Api List Data', () => {
 			sinon.assert.calledOnce(sessionMock.getSessionInstance);
 			sinon.assert.calledWithExactly(sessionMock.getSessionInstance, MyModel);
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should return an empty rows array and zero total rows if passed params do not find any result', async () => {
@@ -688,7 +749,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 
@@ -712,7 +773,7 @@ describe('Api List Data', () => {
 				limit: 60
 			});
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should return a rows array and total rows if passed params do find results', async () => {
@@ -731,7 +792,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 			sinon.spy(MyModel.prototype, 'getTotals');
@@ -758,7 +819,7 @@ describe('Api List Data', () => {
 
 			sinon.assert.calledOnce(MyModel.prototype.getTotals);
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 
 		it('Should return a rows array (formatted) and total rows if passed params do find results', async () => {
@@ -785,7 +846,7 @@ describe('Api List Data', () => {
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPathWithMsPath, MyModel);
 
 			sinon.spy(MyModel.prototype, 'get');
 			sinon.spy(MyModel.prototype, 'getTotals');
@@ -815,7 +876,7 @@ describe('Api List Data', () => {
 
 			sinon.assert.calledOnce(MyModel.prototype.getTotals);
 
-			mockRequire.stop(modelPath);
+			mockRequire.stop(modelPathWithMsPath);
 		});
 	});
 
