@@ -330,7 +330,6 @@ describe('Api List Data', () => {
 			await assert.rejects(() => apiListData.validate(), err => {
 				return err instanceof ApiListError
 					&& !!err.message.includes('filters')
-					&& !!err.message.includes('id')
 					&& !!err.message.includes('filters.foo');
 			});
 		});
