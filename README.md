@@ -46,6 +46,13 @@ module.exports = class MyApiListData extends ApiListData {
 		];
 	}
 
+	get searchFilters() {
+		return [
+			'id',
+			'quantity'
+		];
+	}
+
 	async formatRows(rows) {
 		return rows.map(row => ({ ...row, oneMoreField: true }));
 	}
@@ -147,3 +154,36 @@ module.exports = class MyApiListData extends ApiListData {
 
 };
 ```
+
+### get searchFilters()
+This is used to indicate which fields will be used to mapped multiple filters (OR Type) for the same value, using only `search` as single filter.
+If it don't exist or return an empty array and try to use `search` filter will return 400 status code.
+Can be combined with other filters.
+
+For example:
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	get searchFilters() {
+		return ['someField', 'otherField'];
+	}
+};
+```
+
+* `/api/entity?filters[search]=1` with a single value.
+
+Will filter the list for `someField: 1` or `otherField: 1`
+
+* `/api/entity?filters[search]=fo` with a uncomplete word.
+
+Will filter the list for `someField: fo` or `otherField: fo` and will do a parcial filter (like using `searchMapper`).
+
+* `/api/entity?filters[search]=foo bar` with multiples words divided by white spaces.
+
+Will filter the list for `someField: foo` or `someField: bar` or `otherField: foo` or `otherField: bar`.
