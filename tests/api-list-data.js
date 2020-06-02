@@ -310,6 +310,24 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should throw if search filter is passed and there are no search filters', async () => {
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					search: 'bar'
+				}
+			};
+			apiListData.headers = {};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('filters')
+					&& !!err.message.includes('undefined');
+			});
+		});
+
 		it('Should throw if invalid filter is passed', async () => {
 
 			class MyApiListData extends ApiListData {
@@ -338,6 +356,10 @@ describe('Api List Data', () => {
 
 			class MyApiListData extends ApiListData {
 
+				get searchFilters() {
+					return ['id', 'foo'];
+				}
+
 				get availableFilters() {
 					return [
 						'id',
@@ -358,7 +380,8 @@ describe('Api List Data', () => {
 			apiListData.data = {
 				filters: {
 					id: '10',
-					id2: '100'
+					id2: '100',
+					search: '1000'
 				},
 				sortBy: 'foo',
 				sortDirection: 'asc'
@@ -895,6 +918,210 @@ describe('Api List Data', () => {
 
 			mockRequire.stop(modelPath);
 		});
-	});
 
+		it('Should format search filter with a single field', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get searchFilters() {
+					return ['id'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					search: 'some-id'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					id: { type: 'search', value: 'some-id' }
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should format search filter with multiple field with OR filters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get searchFilters() {
+					return ['id', 'foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					search: 'some-id'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: [
+					{ id: { type: 'search', value: 'some-id' } },
+					{ foo: { type: 'search', value: 'some-id' } },
+					{ bar: { type: 'search', value: 'some-id' } }
+				],
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should formatt search filter with multiple words in data request', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get searchFilters() {
+					return ['id', 'foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					search: 'some-id some-foo'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: [
+					{ id: { type: 'search', value: 'some-id' } },
+					{ id: { type: 'search', value: 'some-foo' } },
+					{ foo: { type: 'search', value: 'some-id' } },
+					{ foo: { type: 'search', value: 'some-foo' } },
+					{ bar: { type: 'search', value: 'some-id' } },
+					{ bar: { type: 'search', value: 'some-foo' } }
+				],
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should combine search filter with availableFilters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'other'
+					];
+				}
+
+				get searchFilters() {
+					return ['id', 'foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					search: 'some-id',
+					other: 'something'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: [
+					{ other: 'something' },
+					{ id: { type: 'search', value: 'some-id' } },
+					{ foo: { type: 'search', value: 'some-id' } },
+					{ bar: { type: 'search', value: 'some-id' } }
+				],
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+	});
 });
