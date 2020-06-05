@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/janis-commerce/api-list.svg?branch=master)](https://travis-ci.org/janis-commerce/api-list)
 [![Coverage Status](https://coveralls.io/repos/github/janis-commerce/api-list/badge.svg?branch=master)](https://coveralls.io/github/janis-commerce/api-list?branch=master)
 
-A package to handle JANIS List APIs
+A package to handle Janis List APIs
 
 ## Installation
 
@@ -156,6 +156,9 @@ module.exports = class MyApiListData extends ApiListData {
 ```
 
 ### get searchFilters()
+
+_Since 3.3.0_
+
 This is used to indicate which fields will be used to mapped multiple filters (OR Type) for the same value, using only `search` as single filter.
 If it don't exist or return an empty array and try to use `search` filter will return 400 status code.
 Can be combined with other filters.

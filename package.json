@@ -1,7 +1,7 @@
 {
   "name": "@janiscommerce/api-list",
-  "version": "3.2.1",
-  "description": "A package to handle JANIS List APIs",
+  "version": "3.3.0",
+  "description": "A package to handle Janis List APIs",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha --exit -R nyan --require tests/bootstrap.js --recursive tests/",
@@ -25,7 +25,7 @@
     "mocha": "^5.2.0",
     "mock-require": "^3.0.3",
     "nyc": "^13.1.0",
-    "sinon": "^7.3.2"
+    "sinon": "^7.5.0"
   },
   "files": [
     "lib/"
