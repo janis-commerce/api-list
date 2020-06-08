@@ -75,6 +75,9 @@ It could be thought as if it's equivalent to the following request: `/api/sub-en
 The following getters and methods can be used to customize and validate your List API.
 All of them are optional.
 
+### get modelName()
+This is used to change the model name and don't use endpoint entity.
+
 ### get fieldsToSelect()
 This is used to indicate which fields should be selected from the DB.
 This allows you to select fields from other tables, and automatically join them in relational databases.
@@ -190,3 +193,28 @@ Will filter the list for `someField: fo` or `otherField: fo` and will do a parci
 * `/api/entity?filters[search]=foo bar` with multiples words divided by white spaces.
 
 Will filter the list for `someField: foo` or `someField: bar` or `otherField: foo` or `otherField: bar`.
+
+### get staticFilters()
+_Since 3.4.0_
+
+This is used to setted some filter to use only some value, not-dinamic.
+
+For example:
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	get staticFilters() {
+		return {
+			someExactDate: 1000,
+			clients: this.session.clientCode
+		};
+	}
+};
+```
+This will be search items, always, for `someExactDate: 1000` and `clients : {user sessions's clientCode}` and cannot be changed theirs values through query's endpoints.
