@@ -1112,14 +1112,229 @@ describe('Api List Data', () => {
 			sinon.assert.calledOnce(MyModel.prototype.get);
 			sinon.assert.calledWithExactly(MyModel.prototype.get, {
 				filters: [
-					{ other: 'something' },
-					{ id: { type: 'search', value: 'some-id' } },
-					{ foo: { type: 'search', value: 'some-id' } },
-					{ bar: { type: 'search', value: 'some-id' } }
+					{ id: { type: 'search', value: 'some-id' }, other: 'something' },
+					{ foo: { type: 'search', value: 'some-id' }, other: 'something' },
+					{ bar: { type: 'search', value: 'some-id' }, other: 'something' }
 				],
 				limit: 20,
 				page: 1
 			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use only static filter', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get staticFilters() {
+					return {
+						foo: 1,
+						bar: 2
+					};
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					foo: 1,
+					bar: 2
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should combine static filter with availableFilters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'other'
+					];
+				}
+
+				get staticFilters() {
+					return {
+						foo: 1,
+						bar: 2
+					};
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					other: 'something'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					foo: 1,
+					bar: 2,
+					other: 'something'
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should combine static, search filter with availableFilters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'other'
+					];
+				}
+
+				get searchFilters() {
+					return [
+						'some',
+						'another'
+					];
+				}
+
+				get staticFilters() {
+					return {
+						foo: 1,
+						bar: 2
+					};
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					other: 'something',
+					search: 'secret'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: [
+					{ some: { type: 'search', value: 'secret' }, foo: 1, bar: 2, other: 'something' },
+					{ another: { type: 'search', value: 'secret' }, foo: 1, bar: 2, other: 'something' }
+				],
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use custom model-name when it is setted', async () => {
+
+			class CustomModel {
+				async get() {
+					return [];
+				}
+			}
+
+			const customModelPath = path.join(process.cwd(), '', 'models', 'custom');
+
+			mockRequire(customModelPath, CustomModel);
+
+			sinon.spy(CustomModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get modelName() {
+					return 'custom';
+				}
+
+				get fieldsToSelect() {
+					return ['id', 'name', 'status'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(CustomModel.prototype.get);
+			sinon.assert.calledWithExactly(CustomModel.prototype.get, {
+				page: 1,
+				limit: 60,
+				fields: ['id', 'name', 'status']
+			});
+
+			assert.deepEqual(apiListData.model.session, undefined);
 
 			mockRequire.stop(modelPath);
 		});
