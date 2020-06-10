@@ -217,4 +217,4 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
-This will be search items, always, for `someExactDate: 1000` and `clients : {user sessions's clientCode}` and cannot be changed theirs values through query's endpoints.
+This will be search items, always, for `someExactDate: new Date('2020-02-27T14:23:44.963Z')` and `clients : {user sessions's clientCode}` and cannot be changed theirs values through query's endpoints.
