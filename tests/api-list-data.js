@@ -292,6 +292,69 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should throw if available-filter is invalid', async () => {
+
+			class InvalidListApi extends ApiListData {
+
+				get availableFilters() {
+					return 'invalid';
+				}
+			}
+
+			const apiListData = new InvalidListApi();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					invalid: 'bar'
+				}
+			};
+			apiListData.headers = {};
+
+			await assert.rejects(() => apiListData.validate(), { name: ApiListError.name, code: ApiListError.codes.INVALID_FILTERS });
+		});
+
+		it('Should throw if search-filter is invalid', async () => {
+
+			class InvalidListApi extends ApiListData {
+
+				get searchFilters() {
+					return 'invalid';
+				}
+			}
+
+			const apiListData = new InvalidListApi();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					invalid: 'bar'
+				}
+			};
+			apiListData.headers = {};
+
+			await assert.rejects(() => apiListData.validate(), { name: ApiListError.name, code: ApiListError.codes.INVALID_FILTERS });
+		});
+
+		it('Should throw if static-filter is invalid', async () => {
+
+			class InvalidListApi extends ApiListData {
+
+				get staticFilters() {
+					return 'invalid';
+				}
+			}
+
+			const apiListData = new InvalidListApi();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					invalid: 'bar'
+				}
+			};
+			apiListData.headers = {};
+
+			await assert.rejects(() => apiListData.validate(), { name: ApiListError.name, code: ApiListError.codes.INVALID_FILTERS });
+		});
+
 		it('Should throw if filter is passed and there are no available filters', async () => {
 
 			const apiListData = new ApiListData();
@@ -1214,8 +1277,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: {
 					foo: 1,
 					bar: 2,
@@ -1280,8 +1342,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: [
 					{ some: { type: 'search', value: 'secret' }, foo: 1, bar: 2, other: 'something' },
 					{ another: { type: 'search', value: 'secret' }, foo: 1, bar: 2, other: 'something' }
@@ -1327,8 +1388,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(CustomModel.prototype.get);
-			sinon.assert.calledWithExactly(CustomModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(CustomModel.prototype.get, {
 				page: 1,
 				limit: 60,
 				fields: ['id', 'name', 'status']
