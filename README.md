@@ -76,7 +76,7 @@ The following getters and methods can be used to customize and validate your Lis
 All of them are optional.
 
 ### get modelName()
-This is used to change the model name and don't use endpoint entity.
+Returns model name. It is intent to be used to change the model's name and it will not get the model name from endpoint
 
 ### get fieldsToSelect()
 This is used to indicate which fields should be selected from the DB.
@@ -197,7 +197,7 @@ Will filter the list for `someField: foo` or `someField: bar` or `otherField: fo
 ### get staticFilters()
 _Since 3.4.0_
 
-This is used to setted some filter to use only some value, not-dinamic.
+This is used to set a filter to use fixed value, not-dinamic.
 
 For example:
 ```js
@@ -211,7 +211,7 @@ module.exports = class MyApiListData extends ApiListData {
 
 	get staticFilters() {
 		return {
-			someExactDate: 1000,
+			someExactDate: new Date('2020-02-27T14:23:44.963Z'),
 			clients: this.session.clientCode
 		};
 	}
