@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.0.0] - 2020-06-16
+### Changed
+- API upgraded to v5 (`api-session` validates locations) (**BREAKING CHANGE**)
+
 ## [3.4.0] - 2020-06-10
 ### Added
 - static filters

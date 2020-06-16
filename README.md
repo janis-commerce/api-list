@@ -11,6 +11,13 @@ A package to handle Janis List APIs
 npm install @janiscommerce/api-list
 ```
 
+## ⚠️ **Breaking changes from version *4.0.0*** ⚠️
+*Since 4.0.0*
+
+API upgraded to v5. API Session store validations replaced with loactions
+
+For more information see [API](https://www.npmjs.com/package/@janiscommerce/api) and [API Session](https://www.npmjs.com/package/@janiscommerce/api-session)
+
 ## Usage
 
 ```js

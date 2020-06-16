@@ -1,6 +1,6 @@
 {
   "name": "@janiscommerce/api-list",
-  "version": "3.4.0",
+  "version": "4.0.0",
   "description": "A package to handle Janis List APIs",
   "main": "lib/index.js",
   "scripts": {
@@ -18,14 +18,14 @@
   "license": "ISC",
   "homepage": "https://github.com/janis-commerce/api-list#readme",
   "devDependencies": {
-    "eslint": "^5.16.0",
+    "eslint": "^7.2.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.18.2",
     "husky": "^2.7.0",
-    "mocha": "^5.2.0",
+    "mocha": "^8.0.1",
     "mock-require": "^3.0.3",
-    "nyc": "^13.1.0",
-    "sinon": "^7.5.0"
+    "nyc": "^15.1.0",
+    "sinon": "^9.0.2"
   },
   "files": [
     "lib/"
@@ -37,7 +37,7 @@
     "@janiscommerce/model": "^4.1.0"
   },
   "dependencies": {
-    "@janiscommerce/api": "^4.3.0",
+    "@janiscommerce/api": "^5.0.0",
     "superstruct": "0.6.2"
   }
 }
