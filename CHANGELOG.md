@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- format filters method
+
 ## [4.0.1] - 2020-06-23
 ### Fixed
 - Filters with an object as value are now valid

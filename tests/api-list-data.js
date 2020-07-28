@@ -1398,5 +1398,127 @@ describe('Api List Data', () => {
 
 			mockRequire.stop(modelPath);
 		});
+
+		it('Should use formatFilters method and modified a filter', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'someQuanityFilter',
+						'otherFilter'
+					];
+				}
+
+				formatFilters(filters) {
+
+					if(filters.someQuanityFilter && filters.someQuanityFilter > 100) {
+						return {
+							...filters,
+							someQuanityFilter: 100
+						};
+					}
+
+					return filters;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					someQuanityFilter: 150,
+					otherFilter: 'something'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					someQuanityFilter: 100,
+					otherFilter: 'something'
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatFilters method and dont modified the filters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'someQuanityFilter',
+						'otherFilter'
+					];
+				}
+
+				formatFilters(filters) {
+
+					if(!filters)
+						return filters;
+
+					if(filters.someQuanityFilter && filters.someQuanityFilter > 100) {
+						return {
+							...filters,
+							someQuanityFilter: 100
+						};
+					}
+
+					return filters;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
 	});
 });

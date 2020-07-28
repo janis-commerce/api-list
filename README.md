@@ -225,3 +225,33 @@ module.exports = class MyApiListData extends ApiListData {
 };
 ```
 This will be search items, always, for `someExactDate: new Date('2020-02-27T14:23:44.963Z')` and `clients : {user sessions's clientCode}` and cannot be changed theirs values through query's endpoints.
+
+### async formatFilters(filters)
+_Since 4.1.0_
+
+This is used to modified a filter or even aggregate a new one.
+
+For example:
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	async formatFilters(filters) {
+
+		if(filters.someDateFilterFrom && filters.someDateFilterFrom < new Date('2020-01-01T00:00:00.000Z')) {
+			return {
+				...filters,
+				someDateFilterFrom: new Date('2020-02-27T14:23:44.963Z')
+			};
+		}
+
+		return filters;
+	}
+};
+```
+This will be modified the filter `someDateFilterFrom` only if the value is bigger than the specific date. This cannot be changed their value through query endpoints.
