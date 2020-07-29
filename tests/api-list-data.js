@@ -1399,7 +1399,7 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
-		it('Should use formatFilters method and modified a filter', async () => {
+		it('Should use formatFilters method and modify a filter', async () => {
 
 			class MyModel {
 				async get() {
@@ -1463,7 +1463,62 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
-		it('Should use formatFilters method and dont modified the filters', async () => {
+		it('Should use formatFilters method and override the filters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'someQuanityFilter',
+						'otherFilter'
+					];
+				}
+
+				formatFilters() {
+					return { foo: 'bar' };
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					someQuanityFilter: 150,
+					otherFilter: 'something'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					foo: 'bar'
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatFilters method and don\'t modify the filters', async () => {
 
 			class MyModel {
 				async get() {
