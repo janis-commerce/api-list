@@ -11,10 +11,10 @@ A package to handle Janis List APIs
 npm install @janiscommerce/api-list
 ```
 
-## ⚠️ **Breaking changes from version *4.0.0*** ⚠️
+## ⚠️ **Breaking changes from version *4.0.0***
 *Since 4.0.0*
 
-API upgraded to v5. API Session store validations replaced with loactions
+API upgraded to v5. API Session store validations replaced with locations
 
 For more information see [API](https://www.npmjs.com/package/@janiscommerce/api) and [API Session](https://www.npmjs.com/package/@janiscommerce/api-session)
 
@@ -197,16 +197,17 @@ Will filter the list for `someField: 1` or `otherField: 1`
 
 Will filter the list for `someField: fo` or `otherField: fo` and will do a parcial filter (like using `searchMapper`).
 
-* `/api/entity?filters[search]=foo bar` with multiples words divided by white spaces.
+* `/api/entity?filters[search]=foo bar` with multiples words separated by white spaces.
 
 Will filter the list for `someField: foo` or `someField: bar` or `otherField: foo` or `otherField: bar`.
 
 ### get staticFilters()
 _Since 3.4.0_
 
-This is used to set a filter to use fixed value, not-dinamic.
+This is used to set a filter with a fixed value for all requests.
 
 For example:
+
 ```js
 'use strict';
 
@@ -224,4 +225,40 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
-This will be search items, always, for `someExactDate: new Date('2020-02-27T14:23:44.963Z')` and `clients : {user sessions's clientCode}` and cannot be changed theirs values through query's endpoints.
+
+This will add two filters (`someExactDate` and `clients`) to the request filters (if any). The static filters will not be overriden by user-provided filters.
+
+### async formatFilters(filters)
+_Since 4.1.0_
+
+This is used to programatically alter the filters. It will be executed after parsing static and dynamic filters.
+If you return a falsy value it will not override them. Otherwise, the return value will be used as filters.
+
+You can use this method, for example, to build complex filters or to ensure that a Date range filter is always being applied.
+
+For example:
+
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	async formatFilters(filters) {
+
+		if(filters.someDateFilterFrom && filters.someDateFilterFrom < new Date('2020-01-01T00:00:00.000Z')) {
+
+			// This will override the someDateFilterFrom filter
+			return {
+				...filters,
+				someDateFilterFrom: new Date('2020-02-27T14:23:44.963Z')
+			};
+		}
+
+		// In this case it will not override the filters
+	}
+};
+```
