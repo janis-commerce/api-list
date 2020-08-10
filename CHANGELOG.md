@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [4.1.1] - 2020-08-10
+### Fixed
+- Max page size is validated as 100 records
+
 ## [4.1.0] - 2020-07-29
 ### Added
 - `formatFilters` method
