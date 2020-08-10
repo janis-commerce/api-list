@@ -292,6 +292,22 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should throw if a page size grater than the max size is passed', async () => {
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page-size': 500
+			};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('x-janis-page-size')
+					&& !!err.message.includes('500');
+			});
+		});
+
 		it('Should throw if available-filter is invalid', async () => {
 
 			class InvalidListApi extends ApiListData {
