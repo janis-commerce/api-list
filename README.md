@@ -1,7 +1,8 @@
 # API List
 
-[![Build Status](https://travis-ci.org/janis-commerce/api-list.svg?branch=master)](https://travis-ci.org/janis-commerce/api-list)
+![Build Status](https://github.com/janis-commerce/api-list/workflows/Build%20Status/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/janis-commerce/api-list/badge.svg?branch=master)](https://coveralls.io/github/janis-commerce/api-list?branch=master)
+[![npm version](https://badge.fury.io/js/%40janiscommerce%2Fapi-list.svg)](https://www.npmjs.com/package/@janiscommerce/api-list)
 
 A package to handle Janis List APIs
 
@@ -10,13 +11,6 @@ A package to handle Janis List APIs
 ```
 npm install @janiscommerce/api-list
 ```
-
-## ⚠️ **Breaking changes from version *4.0.0*** ⚠️
-*Since 4.0.0*
-
-API upgraded to v5. API Session store validations replaced with loactions
-
-For more information see [API](https://www.npmjs.com/package/@janiscommerce/api) and [API Session](https://www.npmjs.com/package/@janiscommerce/api-session)
 
 ## Usage
 

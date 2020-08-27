@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.0.0] - 2020-08-27
+### Added
+- GitHub Actions for build, coverage and publish
+
+### Changed
+- Updated `@janiscommerce/api` to `6.x.x`
+
 ## [4.0.1] - 2020-06-23
 ### Fixed
 - Filters with an object as value are now valid
