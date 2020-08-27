@@ -292,6 +292,22 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should throw if a page size grater than the max size is passed', async () => {
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page-size': 500
+			};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('x-janis-page-size')
+					&& !!err.message.includes('500');
+			});
+		});
+
 		it('Should throw if available-filter is invalid', async () => {
 
 			class InvalidListApi extends ApiListData {
@@ -1395,6 +1411,183 @@ describe('Api List Data', () => {
 			});
 
 			assert.deepEqual(apiListData.model.session, undefined);
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatFilters method and modify a filter', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'someQuanityFilter',
+						'otherFilter'
+					];
+				}
+
+				formatFilters(filters) {
+
+					if(filters.someQuanityFilter && filters.someQuanityFilter > 100) {
+						return {
+							...filters,
+							someQuanityFilter: 100
+						};
+					}
+
+					return filters;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					someQuanityFilter: 150,
+					otherFilter: 'something'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					someQuanityFilter: 100,
+					otherFilter: 'something'
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatFilters method and override the filters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'someQuanityFilter',
+						'otherFilter'
+					];
+				}
+
+				formatFilters() {
+					return { foo: 'bar' };
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					someQuanityFilter: 150,
+					otherFilter: 'something'
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				filters: {
+					foo: 'bar'
+				},
+				limit: 20,
+				page: 1
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatFilters method and don\'t modify the filters', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'someQuanityFilter',
+						'otherFilter'
+					];
+				}
+
+				formatFilters(filters) {
+
+					if(!filters)
+						return filters;
+
+					if(filters.someQuanityFilter && filters.someQuanityFilter > 100) {
+						return {
+							...filters,
+							someQuanityFilter: 100
+						};
+					}
+
+					return filters;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.headers = {
+				'x-janis-page': 1,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				limit: 20,
+				page: 1
+			});
 
 			mockRequire.stop(modelPath);
 		});
