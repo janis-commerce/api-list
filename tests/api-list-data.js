@@ -658,7 +658,7 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
-		it('Should pass client defined parameters when it recieves an array of filters to the model get', async () => {
+		it('Should pass client defined parameters to the model get when it receives an array of filters ', async () => {
 
 			class MyModel {
 				async get() {
