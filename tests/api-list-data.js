@@ -658,6 +658,61 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
+		it('Should pass client defined parameters when it recieves an array of filters to the model get', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'id',
+						{
+							name: 'name',
+							valueMapper: value => value.toUpperCase()
+						}
+					];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					id: '10',
+					name: ['foo', 'bar']
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 2,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnce(MyModel.prototype.get);
+			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				filters: {
+					id: '10',
+					name: ['FOO', 'BAR']
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
 		it('Should pass endpoint parents to the model get as filters', async () => {
 
 			class MyModel {
@@ -805,7 +860,7 @@ describe('Api List Data', () => {
 				fields: ['id', 'name', 'status']
 			});
 
-			assert.deepEqual(apiListData.model.session, undefined);
+			assert.deepStrictEqual(apiListData.model.session, undefined);
 
 			mockRequire.stop(modelPath);
 		});
@@ -1410,7 +1465,7 @@ describe('Api List Data', () => {
 				fields: ['id', 'name', 'status']
 			});
 
-			assert.deepEqual(apiListData.model.session, undefined);
+			assert.deepStrictEqual(apiListData.model.session, undefined);
 
 			mockRequire.stop(modelPath);
 		});
