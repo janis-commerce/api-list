@@ -104,16 +104,16 @@ describe('Filter mappers', () => {
 	describe('customTypeMapper', () => {
 
 		it('Should create a mapper with the given type', () => {
-			const notEqualMapper = customTypeMapper.map('notEqual');
+			const notEqualMapper = customTypeMapper('notEqual');
 
-			assert.deepStrictEqual(notEqualMapper('myValue'), {
+			assert.deepStrictEqual(notEqualMapper.map('myValue'), {
 				type: 'notEqual',
 				value: 'myValue'
 			});
 
-			const greaterOrEqualMapper = customTypeMapper.map('greaterOrEqual');
+			const greaterOrEqualMapper = customTypeMapper('greaterOrEqual');
 
-			assert.deepStrictEqual(greaterOrEqualMapper(10), {
+			assert.deepStrictEqual(greaterOrEqualMapper.map(10), {
 				type: 'greaterOrEqual',
 				value: 10
 			});
