@@ -8,6 +8,7 @@ const mockRequire = require('mock-require');
 
 const { ApiListData } = require('..');
 const { ApiListError } = require('../lib');
+const { searchMapper, booleanMapper } = require('../lib/filter-mappers');
 
 describe('Api List Data', () => {
 
@@ -658,7 +659,7 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
-		it('Should pass client defined parameters to the model get when it receives an array of filters ', async () => {
+		it('Should pass client defined parameters to the model get when it receives an array to filter with ', async () => {
 
 			class MyModel {
 				async get() {
@@ -678,6 +679,14 @@ describe('Api List Data', () => {
 						{
 							name: 'name',
 							valueMapper: value => value.toUpperCase()
+						},
+						{
+							name: 'country',
+							valueMapper: searchMapper
+						},
+						{
+							name: 'isDefault',
+							valueMapper: booleanMapper
 						}
 					];
 				}
@@ -688,7 +697,9 @@ describe('Api List Data', () => {
 			apiListData.data = {
 				filters: {
 					id: '10',
-					name: ['foo', 'bar']
+					name: ['foo', 'bar'],
+					country: ['arge', 'bras'],
+					isDefault: [1, 0]
 				}
 			};
 			apiListData.headers = {
@@ -706,7 +717,9 @@ describe('Api List Data', () => {
 				limit: 20,
 				filters: {
 					id: '10',
-					name: ['FOO', 'BAR']
+					name: ['FOO', 'BAR'],
+					country: { type: 'search', value: ['arge', 'bras'] },
+					isDefault: [true, false]
 				}
 			});
 

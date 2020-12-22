@@ -78,22 +78,22 @@ describe('Filter mappers', () => {
 
 		it('Should return an object with type search and the passed value', () => {
 
-			assert.deepStrictEqual(searchMapper('myValue'), {
+			assert.deepStrictEqual(searchMapper.map('myValue'), {
 				type: 'search',
 				value: 'myValue'
 			});
 
-			assert.deepStrictEqual(searchMapper({ foo: 'bar' }), {
+			assert.deepStrictEqual(searchMapper.map({ foo: 'bar' }), {
 				type: 'search',
 				value: { foo: 'bar' }
 			});
 
-			assert.deepStrictEqual(searchMapper(['foo']), {
+			assert.deepStrictEqual(searchMapper.map(['foo']), {
 				type: 'search',
 				value: ['foo']
 			});
 
-			assert.deepStrictEqual(searchMapper(false), {
+			assert.deepStrictEqual(searchMapper.map(false), {
 				type: 'search',
 				value: false
 			});
@@ -104,14 +104,14 @@ describe('Filter mappers', () => {
 	describe('customTypeMapper', () => {
 
 		it('Should create a mapper with the given type', () => {
-			const notEqualMapper = customTypeMapper('notEqual');
+			const notEqualMapper = customTypeMapper.map('notEqual');
 
 			assert.deepStrictEqual(notEqualMapper('myValue'), {
 				type: 'notEqual',
 				value: 'myValue'
 			});
 
-			const greaterOrEqualMapper = customTypeMapper('greaterOrEqual');
+			const greaterOrEqualMapper = customTypeMapper.map('greaterOrEqual');
 
 			assert.deepStrictEqual(greaterOrEqualMapper(10), {
 				type: 'greaterOrEqual',
