@@ -8,7 +8,7 @@ const mockRequire = require('mock-require');
 
 const { ApiListData } = require('..');
 const { ApiListError } = require('../lib');
-const { searchMapper, booleanMapper } = require('../lib/filter-mappers');
+const { searchMapper, booleanMapper, customTypeMapper } = require('../lib/filter-mappers');
 
 describe('Api List Data', () => {
 
@@ -687,6 +687,10 @@ describe('Api List Data', () => {
 						{
 							name: 'isDefault',
 							valueMapper: booleanMapper
+						},
+						{
+							name: 'age',
+							valueMapper: customTypeMapper('notEqual')
 						}
 					];
 				}
@@ -699,7 +703,8 @@ describe('Api List Data', () => {
 					id: '10',
 					name: ['foo', 'bar'],
 					country: ['arge', 'bras'],
-					isDefault: [1, 0]
+					isDefault: [1, 0],
+					age: [18, 30]
 				}
 			};
 			apiListData.headers = {
@@ -719,7 +724,8 @@ describe('Api List Data', () => {
 					id: '10',
 					name: ['FOO', 'BAR'],
 					country: { type: 'search', value: ['arge', 'bras'] },
-					isDefault: [true, false]
+					isDefault: [true, false],
+					age: { type: 'notEqual', value: [18, 30] }
 				}
 			});
 
