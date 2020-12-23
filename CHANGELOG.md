@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.0.1] - 2020-12-23
 ### Fixed
 - Now when it receives an array to filter and a value mapper function it process the function to each element of the array
 

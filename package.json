@@ -18,14 +18,14 @@
   "license": "ISC",
   "homepage": "https://github.com/janis-commerce/api-list#readme",
   "devDependencies": {
-    "eslint": "^7.7.0",
+    "eslint": "^7.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.20.2",
-    "husky": "^4.2.5",
-    "mocha": "^8.1.2",
+    "eslint-plugin-import": "^2.22.1",
+    "husky": "^4.3.6",
+    "mocha": "^8.2.1",
     "mock-require": "^3.0.3",
     "nyc": "^15.1.0",
-    "sinon": "^9.0.3"
+    "sinon": "^9.2.2"
   },
   "files": [
     "lib/"
@@ -34,7 +34,7 @@
     "test": "tests"
   },
   "dependencies": {
-    "@janiscommerce/api": "^6.0.0",
+    "@janiscommerce/api": "^6.2.0",
     "superstruct": "0.6.2"
   }
 }
