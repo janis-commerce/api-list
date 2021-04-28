@@ -309,6 +309,23 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should throw if a page size grater than the max size for Services is passed', async () => {
+
+			const apiListData = new ApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {};
+			apiListData.session = { isService: true };
+			apiListData.headers = {
+				'x-janis-page-size': 1001
+			};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('x-janis-page-size')
+					&& !!err.message.includes('1001');
+			});
+		});
+
 		it('Should throw if available-filter is invalid', async () => {
 
 			class InvalidListApi extends ApiListData {
@@ -586,8 +603,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
@@ -643,8 +659,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 2,
 				limit: 20,
 				order: {
@@ -716,8 +731,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 2,
 				limit: 20,
 				filters: {
@@ -790,8 +804,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 2,
 				limit: 20,
 				order: {
@@ -835,8 +848,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60,
 				fields: ['id', 'name', 'status']
@@ -872,8 +884,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60,
 				fields: ['id', 'name', 'status']
@@ -921,15 +932,13 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60,
 				fields: ['id', 'name', 'status']
 			});
 
-			sinon.assert.calledOnce(sessionMock.getSessionInstance);
-			sinon.assert.calledWithExactly(sessionMock.getSessionInstance, MyModel);
+			sinon.assert.calledOnceWithExactly(sessionMock.getSessionInstance, MyModel);
 
 			mockRequire.stop(modelPath);
 		});
@@ -960,8 +969,7 @@ describe('Api List Data', () => {
 				'x-janis-total': 0
 			});
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
@@ -1004,13 +1012,12 @@ describe('Api List Data', () => {
 				'x-janis-total': 100
 			});
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
 
-			sinon.assert.calledOnce(MyModel.prototype.getTotals);
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals);
 
 			mockRequire.stop(modelPath);
 		});
@@ -1061,13 +1068,12 @@ describe('Api List Data', () => {
 				'x-janis-total': 100
 			});
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				page: 1,
 				limit: 60
 			});
 
-			sinon.assert.calledOnce(MyModel.prototype.getTotals);
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals);
 
 			mockRequire.stop(modelPath);
 		});
@@ -1107,8 +1113,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: {
 					id: { type: 'search', value: 'some-id' }
 				},
@@ -1154,8 +1159,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: [
 					{ id: { type: 'search', value: 'some-id' } },
 					{ foo: { type: 'search', value: 'some-id' } },
@@ -1203,8 +1207,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: [
 					{ id: { type: 'search', value: 'some-id' } },
 					{ id: { type: 'search', value: 'some-foo' } },
@@ -1262,8 +1265,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: [
 					{ id: { type: 'search', value: 'some-id' }, other: 'something' },
 					{ foo: { type: 'search', value: 'some-id' }, other: 'something' },
@@ -1310,8 +1312,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: {
 					foo: 1,
 					bar: 2
@@ -1540,8 +1541,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: {
 					someQuanityFilter: 100,
 					otherFilter: 'something'
@@ -1596,8 +1596,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				filters: {
 					foo: 'bar'
 				},
@@ -1657,8 +1656,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnce(MyModel.prototype.get);
-			sinon.assert.calledWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
 				limit: 20,
 				page: 1
 			});
