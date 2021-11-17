@@ -105,7 +105,7 @@ _Since 3.1.0_
 
 This lib also exports some common filter value mappers (to use as `valueMapper` in your `availableFilters` getter) so you don't need to implement them yourself.
 
-> :warning: `startOfTheDayMapper` and `endOfTheDayMapper` are now deprecated. See [migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper).
+> :warning: `startOfTheDayMapper` and `endOfTheDayMapper` are now deprecated. See [migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper.md).
 
 They are explained here with examples:
 
