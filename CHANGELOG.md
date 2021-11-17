@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.1.1] - 2021-11-17
+### Changed
+- `startOfTheDayMapper` and `endOfTheDayMapper` filter mappers are now deprecated. [Migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper.md)
+
 ## [5.1.0] - 2021-04-28
 ### Changed
 - Max page size limit increased when a service perform the request
