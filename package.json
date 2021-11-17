@@ -4,9 +4,9 @@
   "description": "A package to handle Janis List APIs",
   "main": "lib/index.js",
   "scripts": {
-    "test": "mocha --exit -R nyan --require tests/bootstrap.js --recursive tests/",
-    "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive tests/",
-    "test-ci": "nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive tests/",
+    "test": "mocha --exit -R nyan --require tests/bootstrap.js --recursive tests/ --no-deprecation",
+    "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive tests/ --no-deprecation",
+    "test-ci": "nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive tests/ --no-deprecation",
     "coverage": "nyc npm test",
     "lint": "eslint lib/ tests/",
     "prepare": "husky install"
