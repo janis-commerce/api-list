@@ -36,6 +36,6 @@
   },
   "dependencies": {
     "@janiscommerce/api": "^6.2.1",
-    "superstruct": "0.6.2"
+    "@janiscommerce/superstruct": "^1.2.0"
   }
 }
