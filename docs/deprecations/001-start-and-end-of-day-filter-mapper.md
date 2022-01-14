@@ -1,4 +1,4 @@
-# @janiscommerce/delivery-helpers/001
+# @janiscommerce/api-list/001
 
 > Filter mappers 'startOfTheDayMapper' and 'endOfTheDayMapper' do not take user's timezone. Use a date range filter instead.
 
@@ -8,7 +8,7 @@
 
 When you use the `startOfTheDayMapper` or `endOfTheDayMapper` filter mapper in an API List.
 
-These mappers were intended to map a date to the beginning or end of that day, in order to filter by a whole day instead of an specific microsecond. The problem wiht this is that it ignores the user's timezone which results in invalid results (some missing and some that shouldn't be returned) for non-UTC users.
+These mappers were intended to map a date to the beginning or end of that day, in order to filter by a whole day instead of an specific microsecond. The problem with this is that it ignores the user's timezone which results in invalid results (some missing and some that shouldn't be returned) for non-UTC users.
 
 The recommended way to resolve date filters is to offer a range filter and honor the exact dates that are sent by the user.
 
@@ -53,7 +53,7 @@ class MyApiList extends ApiListData {
 // models/my-api.js
 const { Model } = require('@janiscommerce/model');
 
-class MyApiList extends ApiListData {
+class MyModel extends Model {
 
 	static get fields() {
 		return {
@@ -102,7 +102,7 @@ class MyApiList extends ApiListData {
 // This file doesn't change
 const { Model } = require('@janiscommerce/model');
 
-class MyApiList extends ApiListData {
+class MyModel extends Model {
 
 	static get fields() {
 		return {
