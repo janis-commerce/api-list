@@ -238,6 +238,32 @@ describe('Api List Data', () => {
 			});
 		});
 
+		it('Should throw if invalid sort field is passed in array', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'invalidField']
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			await assert.rejects(() => apiListData.validate(), err => {
+				return err instanceof ApiListError
+					&& !!err.message.includes('sortBy')
+					&& !!err.message.includes('invalidField');
+			});
+		});
+
 		it('Should throw if invalid sort direction is passed', async () => {
 
 			class MyApiListData extends ApiListData {
@@ -492,6 +518,105 @@ describe('Api List Data', () => {
 
 			assert.strictEqual(validation, undefined);
 		});
+
+		it('Should validate if sortBy property is passed as array', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar']
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+		});
+
+		it('Should validate if sortDirection is passed as array', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar'],
+				sortDirection: ['asc', 'desc']
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+		});
+
+		it('Should validate if sortDirection is passed as array', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar'],
+				sortDirection: ['asc', 'desc']
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+		});
+
+		it('Should validate if sortDirection is passed as array that contains undefined', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar'],
+				sortDirection: [undefined, 'desc']
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+		});
 	});
 
 	describe('Validation with MS_PATH', () => {
@@ -668,6 +793,143 @@ describe('Api List Data', () => {
 				filters: {
 					id: '10',
 					id2: 100
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		/* eslint-disable-next-line max-len */
+		it('Should pass client defined parameters to the model get when it receives an array to sorted with and set default sort direction', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar']
+			};
+			apiListData.headers = {
+				'x-janis-page': 2,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'asc'
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		/* eslint-disable-next-line max-len */
+		it('Should pass client defined parameters to the model get when it receives an array to sorted with and set different sort direction to each one', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar'],
+				sortDirection: ['asc', 'DESC']
+			};
+			apiListData.headers = {
+				'x-janis-page': 2,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'desc'
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		/* eslint-disable-next-line max-len */
+		it('Should pass client defined parameters to the model get when it receives an array to sorted with and set default sort direction if pass undefined', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+				get sortableFields() {
+					return ['foo', 'bar'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar'],
+				sortDirection: [undefined, 'DESC']
+			};
+			apiListData.headers = {
+				'x-janis-page': 2,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'desc'
 				}
 			});
 
