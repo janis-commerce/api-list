@@ -238,7 +238,7 @@ describe('Api List Data', () => {
 			});
 		});
 
-		it('Should throw if invalid sort field is passed in array', async () => {
+		it('Should throw if invalid sort field is passed as array', async () => {
 
 			class MyApiListData extends ApiListData {
 
