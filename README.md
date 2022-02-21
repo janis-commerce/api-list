@@ -111,8 +111,6 @@ Will sort the list by `foo` in direction `asc` that are the *default*
 
 Will sort the list by `foo` in direction `desc`
 
-💡 Also, we can pass **sortBy** as `array`
-
 * `/api/entity?sortBy[0]=foo&&sortBy[1]=bar` with a single value.
 
 Will sort the list by `foo` and `bar` in direction `asc` that are the *default* 
@@ -121,13 +119,9 @@ Will sort the list by `foo` and `bar` in direction `asc` that are the *default*
 
 Will sort the list by `foo` and `bar` in direction `desc`
 
-💡 We can pass an `array` to **sortDirection** indexing with **sortBy**
-
 * `/api/entity?sortBy[0]=foo&&sortBy[1]=bar&&sortDirection[0]=desc&&sortDirection[1]=asc` with a single value.
 
-Will sort the list by `foo` in direction `desc` and `bar` in direction `asc`
-
-❗ When not index a field, it will set with the *default value*
+Will sort the list by `foo` in direction `desc` and `bar` in direction `asc`. The **sortDirection** is indexed with **sortBy**
 
 * `/api/entity?sortBy[0]=foo&&sortBy[1]=bar&&sortDirection[1]=desc` with a single value.
 
