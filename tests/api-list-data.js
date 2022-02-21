@@ -993,6 +993,51 @@ describe('Api List Data', () => {
 				mockRequire.stop(modelPath);
 			});
 
+			it('Should pass client defined parameters to the model get and set sort direction if pass a string', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return ['foo', 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar'],
+					sortDirection: 'desc'
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						foo: 'desc',
+						bar: 'desc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
 			it('Should pass client defined parameters to the model get if pass sort field as empty array', async () => {
 
 				class MyModel {
