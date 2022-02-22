@@ -95,7 +95,7 @@ Filters can be customized by passing an object with the following properties:
 If it's a function (_since 3.1.0_), it must return a string and it will receive the following arguments: `(filterConfiguration, mappedValue, originalValue)`
 - `valueMapper`: (function) A function to be called on the filter's value. This is optional.
 
-### async formatRows(rows)
+### formatRows(rows)
 You can use this to format your records before they are returned.
 For example, mapping DB friendly values to user friendly values, add default values, translation keys, etc.
 
