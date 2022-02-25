@@ -91,9 +91,7 @@ For example:
 ```js
 'use strict';
 
-const {
-	ApiListData
-} = require('@janiscommerce/api-list');
+const { ApiListData } = require('@janiscommerce/api-list');
 
 module.exports = class MyApiListData extends ApiListData {
 
@@ -107,23 +105,23 @@ module.exports = class MyApiListData extends ApiListData {
 
 Will sort the list by `foo` in direction `asc` that are the *default* 
 
-* `/api/entity?sortBy=foo&&sortDirection=desc` with a single value.
+* `/api/entity?sortBy=foo&sortDirection=desc` with a single value.
 
 Will sort the list by `foo` in direction `desc`
 
-* `/api/entity?sortBy[0]=foo&&sortBy[1]=bar` with a single value.
+* `/api/entity?sortBy[0]=foo&sortBy[1]=bar` with a single value.
 
 Will sort the list by `foo` and `bar` in direction `asc` that are the *default* 
 
-* `/api/entity?sortBy[0]=foo&&sortBy[1]=bar&&sortDirection=desc` with a single value.
+* `/api/entity?sortBy[0]=foo&sortBy[1]=bar&sortDirection=desc` with a single value.
 
 Will sort the list by `foo` and `bar` in direction `desc`
 
-* `/api/entity?sortBy[0]=foo&&sortBy[1]=bar&&sortDirection[0]=desc&&sortDirection[1]=asc` with a single value.
+* `/api/entity?sortBy[0]=foo&sortBy[1]=bar&sortDirection[0]=desc&sortDirection[1]=asc` with a single value.
 
 Will sort the list by `foo` in direction `desc` and `bar` in direction `asc`. The **sortDirection** is indexed with **sortBy**
 
-* `/api/entity?sortBy[0]=foo&&sortBy[1]=bar&&sortDirection[1]=desc` with a single value.
+* `/api/entity?sortBy[0]=foo&sortBy[1]=bar&sortDirection[1]=desc` with a single value.
 
 Will sort the list by `foo` in direction `asc` because is the *default value* and `bar` in direction `desc`
 
