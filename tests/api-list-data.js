@@ -858,7 +858,7 @@ describe('Api List Data', () => {
 
 		context('When pass sortDirection as array', () => {
 
-			it('Should pass client defined parameters to the model get and set the first index to sortBy', async () => {
+			it('Should pass client defined parameters to the model get and set the first index to field', async () => {
 
 				class MyModel {
 					async get() {
@@ -902,7 +902,7 @@ describe('Api List Data', () => {
 				mockRequire.stop(modelPath);
 			});
 
-			it('Should pass client defined parameters to the model get and set the default value to sortBy if the first index is undefined', async () => {
+			it('Should pass client defined parameters to the model get and set the default value to field if the first index is undefined', async () => {
 
 				class MyModel {
 					async get() {
