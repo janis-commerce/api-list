@@ -649,7 +649,7 @@ describe('Api List Data', () => {
 				});
 			});
 
-			it('Should throw if the sort field is string', async () => {
+			it('Should validate if the sort field is string', async () => {
 
 				class MyApiListData extends ApiListData {
 
@@ -669,10 +669,9 @@ describe('Api List Data', () => {
 					'x-janis-page-size': '20'
 				};
 
-				await assert.rejects(() => apiListData.validate(), err => {
-					return err instanceof ApiListError
-						&& !!err.message.includes('The field sortDirection must be string when sortBy is string');
-				});
+				const validation = await apiListData.validate();
+
+				assert.strictEqual(validation, undefined);
 			});
 		});
 	});
@@ -855,6 +854,97 @@ describe('Api List Data', () => {
 			});
 
 			mockRequire.stop(modelPath);
+		});
+
+		context('When pass sortDirection as array', () => {
+
+			it('Should pass client defined parameters to the model get and set the first index to sortBy', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return ['foo'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: 'foo',
+					sortDirection: ['desc']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						foo: 'desc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get and set the default value to sortBy if the first index is undefined', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return ['foo'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: 'foo',
+					sortDirection: [undefined, 'desc']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						foo: 'asc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
 		});
 
 		context('When pass sort field as array', () => {
