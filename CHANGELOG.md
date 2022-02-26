@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.2.0] - 2022-02-26
+### Changed
+- From now on the `sortBy` and `sortDirection` can be a `string` or an `array`
+
 ## [5.1.1] - 2021-11-17
 ### Changed
 - `startOfTheDayMapper` and `endOfTheDayMapper` filter mappers are now deprecated. [Migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper.md)
