@@ -1,6 +1,6 @@
 {
   "name": "@janiscommerce/api-list",
-  "version": "5.1.1",
+  "version": "5.2.1",
   "description": "A package to handle Janis List APIs",
   "main": "lib/index.js",
   "scripts": {
