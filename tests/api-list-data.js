@@ -470,6 +470,10 @@ describe('Api List Data', () => {
 				get sortableFields() {
 					return ['foo'];
 				}
+
+				get customParameters() {
+					return ['fooData'];
+				}
 			}
 
 			const apiListData = new MyApiListData();
@@ -481,7 +485,8 @@ describe('Api List Data', () => {
 					search: '1000'
 				},
 				sortBy: 'foo',
-				sortDirection: 'asc'
+				sortDirection: 'asc',
+				fooData: 'true'
 			};
 			apiListData.headers = {
 				'x-janis-page': '3',
@@ -708,6 +713,10 @@ describe('Api List Data', () => {
 				get sortableFields() {
 					return ['foo'];
 				}
+
+				get customParameters() {
+					return ['fooData'];
+				}
 			}
 
 			const apiListData = new MyApiListData();
@@ -718,7 +727,8 @@ describe('Api List Data', () => {
 					id2: '100'
 				},
 				sortBy: 'foo',
-				sortDirection: 'asc'
+				sortDirection: 'asc',
+				fooData: 'true'
 			};
 			apiListData.headers = {
 				'x-janis-page': '3',
@@ -820,6 +830,10 @@ describe('Api List Data', () => {
 				get sortableFields() {
 					return ['foo'];
 				}
+
+				get customParameters() {
+					return ['fooData'];
+				}
 			}
 
 			const apiListData = new MyApiListData();
@@ -830,7 +844,8 @@ describe('Api List Data', () => {
 				filters: {
 					id: '10',
 					id2: '100'
-				}
+				},
+				fooData: 'true'
 			};
 			apiListData.headers = {
 				'x-janis-page': 2,
