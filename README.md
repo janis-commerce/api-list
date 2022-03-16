@@ -296,3 +296,25 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
+
+### get customParameters()
+
+This is used to set custom parameters for the request. It's optional. Additional parameters will be arrives by `this.data`.
+
+For example:
+We need to define that if a `customParameters` arrives with some value, extra fields are added to the list.
+
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	customParameters() {
+
+		return ['fooData'];
+	}
+};
