@@ -498,6 +498,31 @@ describe('Api List Data', () => {
 			assert.strictEqual(validation, undefined);
 		});
 
+		it('should validate when more than one custom parameter is passed', async () => {
+
+			class MyApiListData extends ApiListData {
+
+				get customParameters() {
+					return ['fooData', 'barData'];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				fooData: 'true',
+				barData: 'false'
+			};
+			apiListData.headers = {
+				'x-janis-page': '3',
+				'x-janis-page-size': '20'
+			};
+
+			const validation = await apiListData.validate();
+
+			assert.strictEqual(validation, undefined);
+		});
+
 		context('When pass sortBy as array', () => {
 
 			it('Should validate if sortBy property is passed', async () => {
