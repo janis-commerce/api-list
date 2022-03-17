@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- New optional field `customParameters`. 
+- Optional getter `customParameters` in `apiListData` class for API custom query parameters.
 
 ## [5.2.1] - 2022-03-11
 ### Added
