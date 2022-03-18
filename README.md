@@ -300,6 +300,7 @@ module.exports = class MyApiListData extends ApiListData {
 ### get customParameters()
 
 This allows you to set custom **query parameters** for your API, it must contain the names (keys) and and data type (values) of the custom parameters that the API will receive.
+The `customParameters` and its values will be in `this.data` to use them in your API.
 
 For example:
 
@@ -314,6 +315,17 @@ module.exports = class MyApi extends ApiListData {
         return {
 			additionalParameter: 'string?' // This parameter can be optional
 		};
+	}
+
+	async formatRows(rows) {
+
+		// To access the parameter, the information arrives through `this.data`
+		if(this.data.additionalParameter === 'someData')
+		
+			// Do something with the additional parameter
+			return rows.map(row => ({ ...row, oneMoreField: true }));
+
+		return rows.map(row => (row));
 	}
 };
 
