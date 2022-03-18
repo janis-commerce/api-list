@@ -449,78 +449,124 @@ describe('Api List Data', () => {
 			});
 		});
 
-		it('Should validate if valid data is passed', async () => {
+		context('When pass custom parameters', () => {
 
-			class MyApiListData extends ApiListData {
+			it('Should throw if custom parameter is not an Object', async () => {
 
-				get searchFilters() {
-					return ['id', 'foo'];
+				class MyApiListData extends ApiListData {
+					get customParameters() {
+						return [{ fooData: 'boolean' }];
+					}
 				}
 
-				get availableFilters() {
-					return [
-						'id',
-						{
-							name: 'id2',
-							valueMapper: Number
-						}
-					];
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data =
+					['fooData'];
+				apiListData.headers = {};
+
+				await assert.rejects(() => apiListData.validate(), err => {
+					return err && !!err.message.includes('The custom parameter must be an object');
+				});
+			});
+
+			it('Should throw if custom parameter is not of the defined type', async () => {
+
+				class MyApiListData extends ApiListData {
+					get customParameters() {
+						return { fooData: 'string' };
+					}
 				}
 
-				get sortableFields() {
-					return ['foo'];
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					fooData: true
+				};
+				apiListData.headers = {};
+
+				await assert.rejects(() => apiListData.validate(), err => {
+					return err instanceof ApiListError
+					&& !!err.message.includes('fooData');
+				});
+			});
+
+			it('Should validate if valid data is passed', async () => {
+
+				class MyApiListData extends ApiListData {
+
+					get searchFilters() {
+						return ['id', 'foo'];
+					}
+
+					get availableFilters() {
+						return [
+							'id',
+							{
+								name: 'id2',
+								valueMapper: Number
+							}
+						];
+					}
+
+					get sortableFields() {
+						return ['foo'];
+					}
+
+					get customParameters() {
+						return { fooData: 'boolean' };
+					}
 				}
 
-				get customParameters() {
-					return ['fooData'];
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					filters: {
+						id: '10',
+						id2: '100',
+						search: '1000'
+					},
+					sortBy: 'foo',
+					sortDirection: 'asc',
+					fooData: true
+				};
+				apiListData.headers = {
+					'x-janis-page': '3',
+					'x-janis-page-size': '20'
+				};
+
+				const validation = await apiListData.validate();
+
+				assert.strictEqual(validation, undefined);
+			});
+
+			it('should validate when more than one custom parameter is passed', async () => {
+
+				class MyApiListData extends ApiListData {
+
+					get customParameters() {
+						return {
+							fooData: 'boolean',
+							barData: 'boolean'
+						};
+					}
 				}
-			}
 
-			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/some-entity';
-			apiListData.data = {
-				filters: {
-					id: '10',
-					id2: '100',
-					search: '1000'
-				},
-				sortBy: 'foo',
-				sortDirection: 'asc',
-				fooData: 'true'
-			};
-			apiListData.headers = {
-				'x-janis-page': '3',
-				'x-janis-page-size': '20'
-			};
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					fooData: true,
+					barData: false
+				};
+				apiListData.headers = {
+					'x-janis-page': '3',
+					'x-janis-page-size': '20'
+				};
 
-			const validation = await apiListData.validate();
+				const validation = await apiListData.validate();
 
-			assert.strictEqual(validation, undefined);
-		});
-
-		it('should validate when more than one custom parameter is passed', async () => {
-
-			class MyApiListData extends ApiListData {
-
-				get customParameters() {
-					return ['fooData', 'barData'];
-				}
-			}
-
-			const apiListData = new MyApiListData();
-			apiListData.endpoint = '/some-entity';
-			apiListData.data = {
-				fooData: 'true',
-				barData: 'false'
-			};
-			apiListData.headers = {
-				'x-janis-page': '3',
-				'x-janis-page-size': '20'
-			};
-
-			const validation = await apiListData.validate();
-
-			assert.strictEqual(validation, undefined);
+				assert.strictEqual(validation, undefined);
+			});
 		});
 
 		context('When pass sortBy as array', () => {
@@ -740,7 +786,7 @@ describe('Api List Data', () => {
 				}
 
 				get customParameters() {
-					return ['fooData'];
+					return { fooData: 'string' };
 				}
 			}
 
@@ -855,10 +901,6 @@ describe('Api List Data', () => {
 				get sortableFields() {
 					return ['foo'];
 				}
-
-				get customParameters() {
-					return ['fooData'];
-				}
 			}
 
 			const apiListData = new MyApiListData();
@@ -869,8 +911,7 @@ describe('Api List Data', () => {
 				filters: {
 					id: '10',
 					id2: '100'
-				},
-				fooData: 'true'
+				}
 			};
 			apiListData.headers = {
 				'x-janis-page': 2,
