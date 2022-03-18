@@ -461,12 +461,11 @@ describe('Api List Data', () => {
 
 				const apiListData = new MyApiListData();
 				apiListData.endpoint = '/some-entity';
-				apiListData.data =
-					['fooData'];
+				apiListData.data = ['fooData'];
 				apiListData.headers = {};
 
-				await assert.rejects(() => apiListData.validate(), err => {
-					return err && !!err.message.includes('The custom parameter must be an object');
+				assert.rejects(apiListData.validate(), {
+					message: 'The custom parameters must be an object'
 				});
 			});
 
