@@ -315,7 +315,7 @@ module.exports = class MyApi extends ApiListData {
 			additionalParameter: 'string?' // This parameter can be optional
 		};
 	}
-}
+};
 
 /* 
     This will allow the API to use custom query parameters, example:
