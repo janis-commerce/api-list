@@ -451,21 +451,46 @@ describe('Api List Data', () => {
 
 		context('When pass custom parameters', () => {
 
-			it('Should throw if custom parameter is not an Object', async () => {
+			it('Should throw if custom parameter is invalid', async () => {
+
+				class InvalidListApi extends ApiListData {
+
+					get customParameters() {
+						return true;
+					}
+				}
+
+				const apiListData = new InvalidListApi();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					invalid: false
+				};
+				apiListData.headers = {};
+
+				assert.rejects(apiListData.validate(), error => {
+					return error instanceof ApiListError;
+				});
+			});
+
+			it('Should throw if invalid custom parameter is passed', async () => {
 
 				class MyApiListData extends ApiListData {
+
 					get customParameters() {
-						return [{ fooData: 'boolean' }];
+						return ['fooData'];
 					}
 				}
 
 				const apiListData = new MyApiListData();
 				apiListData.endpoint = '/some-entity';
-				apiListData.data = ['fooData'];
+				apiListData.data = {
+					invalid: 'bar'
+				};
 				apiListData.headers = {};
 
-				assert.rejects(apiListData.validate(), {
-					message: 'The custom parameters must be an object'
+				await assert.rejects(() => apiListData.validate(), err => {
+					return err instanceof ApiListError
+						&& !!err.message.includes('invalid');
 				});
 			});
 
@@ -473,7 +498,7 @@ describe('Api List Data', () => {
 
 				class MyApiListData extends ApiListData {
 					get customParameters() {
-						return { fooData: 'string' };
+						return [{ fooData: 'string' }];
 					}
 				}
 
@@ -513,7 +538,12 @@ describe('Api List Data', () => {
 					}
 
 					get customParameters() {
-						return { fooData: 'boolean' };
+						return [
+							'id',
+							{
+								name: 'fooData',
+								valueMapper: Boolean
+							}];
 					}
 				}
 
@@ -527,6 +557,7 @@ describe('Api List Data', () => {
 					},
 					sortBy: 'foo',
 					sortDirection: 'asc',
+					id: '10',
 					fooData: true
 				};
 				apiListData.headers = {
@@ -544,10 +575,13 @@ describe('Api List Data', () => {
 				class MyApiListData extends ApiListData {
 
 					get customParameters() {
-						return {
-							fooData: 'boolean',
-							barData: 'boolean'
-						};
+						return [{
+							name: 'fooData',
+							valueMapper: Boolean
+						}, {
+							name: 'barData',
+							valueMapper: Boolean
+						}];
 					}
 				}
 
@@ -561,6 +595,22 @@ describe('Api List Data', () => {
 					'x-janis-page': '3',
 					'x-janis-page-size': '20'
 				};
+
+				const validation = await apiListData.validate();
+
+				assert.strictEqual(validation, undefined);
+			});
+
+			it('should validate when more than one custom parameter is passed', async () => {
+
+				class MyApiListData extends ApiListData {
+
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {};
 
 				const validation = await apiListData.validate();
 
@@ -785,7 +835,7 @@ describe('Api List Data', () => {
 				}
 
 				get customParameters() {
-					return { fooData: 'string' };
+					return ['fooData'];
 				}
 			}
 
@@ -798,7 +848,7 @@ describe('Api List Data', () => {
 				},
 				sortBy: 'foo',
 				sortDirection: 'asc',
-				fooData: 'true'
+				fooData: 'bar'
 			};
 			apiListData.headers = {
 				'x-janis-page': '3',
@@ -1284,6 +1334,13 @@ describe('Api List Data', () => {
 						}
 					];
 				}
+
+				get customParameters() {
+					return [{
+						name: 'ageData',
+						valueMapper: customTypeMapper('notEqual')
+					}];
+				}
 			}
 
 			const apiListData = new MyApiListData();
@@ -1295,7 +1352,8 @@ describe('Api List Data', () => {
 					country: ['arge', 'bras'],
 					isDefault: [1, 0],
 					age: [18, 30]
-				}
+				},
+				ageData: [18, 30]
 			};
 			apiListData.headers = {
 				'x-janis-page': 2,
