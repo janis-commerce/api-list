@@ -299,7 +299,12 @@ module.exports = class MyApiListData extends ApiListData {
 
 ### get customParameters()
 
-This allows you to set custom **query parameters** for your API, it must contain the names (keys) and and data type (values) of the custom parameters that the API will receive.
+This allows you to set custom **query parameters** for your API.
+
+Can be customized by passing an object with the following properties:
+- `name`: (string) The name of the custom param. This property is required.
+- `valueMapper`: (function) A function to be called on the filter's value. This is optional.
+
 The `customParameters` and its values will be in `this.data` to use them in your API.
 
 For example:
@@ -312,15 +317,19 @@ const { ApiListData } = require('@janiscommerce/api-list');
 module.exports = class MyApi extends ApiListData {
 
     get customParameters() {
-        return {
-			additionalParameter: 'string?' // This parameter can be optional
-		};
+        return [
+			'someParam', // default string
+			{
+				name: 'otherParam',
+				valueMapper: booleanMapper
+			}
+		];
 	}
 
 	async formatRows(rows) {
 
 		// To access the parameter, the information arrives through `this.data`
-		if(this.data.additionalParameter === 'someData')
+		if(this.data.otherParam === true)
 		
 			// Do something with the additional parameter
 			return rows.map(row => ({ ...row, oneMoreField: true }));
@@ -331,6 +340,6 @@ module.exports = class MyApi extends ApiListData {
 
 /* 
     This will allow the API to use custom query parameters, example:
-    https://domain.com/api/my-api-list?additionalParameter='someData'
+    https://domain.com/api/my-api-list?otherParam=true
 */
 ```
