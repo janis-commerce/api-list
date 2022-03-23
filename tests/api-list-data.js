@@ -515,6 +515,31 @@ describe('Api List Data', () => {
 				});
 			});
 
+			it('Should throw if custom parameter include reserved words', async () => {
+
+				class MyApiListData extends ApiListData {
+					get customParameters() {
+						return [
+							{
+								name: 'filters',
+								valueMapper: Number
+							}
+						];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					filters: 1
+				};
+				apiListData.headers = {};
+
+				await assert.rejects(() => apiListData.validate(), {
+					message: 'The custom parameter name "filters" is reserved word'
+				});
+			});
+
 			it('Should validate if valid data is passed', async () => {
 
 				class MyApiListData extends ApiListData {
