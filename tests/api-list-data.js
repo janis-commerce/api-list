@@ -467,8 +467,9 @@ describe('Api List Data', () => {
 				};
 				apiListData.headers = {};
 
-				assert.rejects(apiListData.validate(), error => {
-					return error instanceof ApiListError;
+				await assert.rejects(apiListData.validate(), {
+					name: ApiListError.name,
+					code: ApiListError.codes.INVALID_PARAMETERS
 				});
 			});
 
