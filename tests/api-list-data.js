@@ -536,7 +536,7 @@ describe('Api List Data', () => {
 				apiListData.headers = {};
 
 				await assert.rejects(() => apiListData.validate(), {
-					message: 'The custom parameter name "filters" is reserved word'
+					message: 'The custom parameter name "filters" is a reserved parameter name.'
 				});
 			});
 
