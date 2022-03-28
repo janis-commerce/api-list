@@ -103,7 +103,7 @@ module.exports = class MyApiListData extends ApiListData {
 
 * `/api/entity?sortBy=foo` with a single value.
 
-Will sort the list by `foo` in direction `asc` that are the *default* 
+Will sort the list by `foo` in direction `asc` that are the *default*
 
 * `/api/entity?sortBy=foo&sortDirection=desc` with a single value.
 
@@ -111,7 +111,7 @@ Will sort the list by `foo` in direction `desc`
 
 * `/api/entity?sortBy[0]=foo&sortBy[1]=bar` with a single value.
 
-Will sort the list by `foo` and `bar` in direction `asc` that are the *default* 
+Will sort the list by `foo` and `bar` in direction `asc` that are the *default*
 
 * `/api/entity?sortBy[0]=foo&sortBy[1]=bar&sortDirection=desc` with a single value.
 
@@ -330,15 +330,13 @@ module.exports = class MyApi extends ApiListData {
 
 		// To access the parameter, the information arrives through `this.data`
 		if(this.data.numericParam === 1)
-		
-			// Do something with the additional parameter
-			return rows.map(row => ({ ...row, oneMoreField: true }));
+			return rows.map(row => ({ ...row, oneMoreField: true })); // Do something with the additional parameter
 
-		return rows.map(row => (row));
+		return rows;
 	}
 };
 
-/* 
+/*
     This will allow the API to use custom query parameters, example:
     https://domain.com/api/my-api-list?numericParam=1
 */
