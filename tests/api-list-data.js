@@ -2322,5 +2322,67 @@ describe('Api List Data', () => {
 
 			mockRequire.stop(modelPath);
 		});
+
+		it('Should not send empty filters', async () => {
+
+			const fakeDate = '2022-04-21T21:28:45.856Z';
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get availableFilters() {
+					return [
+						'id',
+						{
+							name: 'myDateRange',
+							internalName: 'myDateRangeStartFrom',
+							valueMapper: ({ from }) => from
+						},
+						{
+							name: 'myDateRange',
+							internalName: 'myDateRangeEndTo',
+							valueMapper: ({ to }) => to
+						}
+					];
+				}
+			}
+
+			const apiListData = new MyApiListData();
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				filters: {
+					id: '10',
+					myDateRange: { from: fakeDate }
+				}
+			};
+			apiListData.headers = {
+				'x-janis-page': 2,
+				'x-janis-page-size': 20
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				filters: {
+					id: '10',
+					myDateRangeStartFrom: fakeDate
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
 	});
 });
