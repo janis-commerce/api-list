@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.3.2] - 2022-04-29
+### Changed
+- Changed internal implementation so data fetching can be overriden
+
 ## [5.3.1] - 2022-04-21
 ### Fixed
 - Sending empty filters when filterMappers returned an empty value, now it doesn't return empty filters to avoid issues.
