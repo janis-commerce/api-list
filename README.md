@@ -341,3 +341,41 @@ module.exports = class MyApi extends ApiListData {
     https://domain.com/api/my-api-list?numericParam=1
 */
 ```
+
+### async formatSortables(sortables)
+_Since 5.4.0_
+
+This is used to programatically alter the sortables. It will be executed after parsing static and dynamic sortables.
+If you return a falsy value it will not override them. Otherwise, the return value will be used as sortables.
+
+You can use this method, for example, to build complex sorting.
+
+For example:
+
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	async formatSortables(sortables) {
+
+		const currentSorts = Object.keys(sortables).reduce((accum, key) => {
+
+			// We can use 'customFilter' as an identifier for build a complex sorting
+			if(key === 'customFilter') {
+				const customSorts = { someField: 'asc', otherField: 'desc' };
+
+				return { ...accum, ...customSorts };
+			}
+
+			return { ...accum, [key]: sorts[key] };
+		}, {});
+
+		return currentSorts;
+	}
+};
+```

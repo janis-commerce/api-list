@@ -2384,5 +2384,126 @@ describe('Api List Data', () => {
 
 			mockRequire.stop(modelPath);
 		});
+
+		it('Should use formatSortables method and don\'t modify the sortables', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar', 'test'];
+				}
+
+				formatSortables(sorts) {
+
+					const currentSorts = Object.keys(sorts).reduce((accum, key, idx, array) => {
+						if(key === 'test' && !array.includes('foo'))
+							return { ...accum, someField: 'asc' };
+
+						return { ...accum, [key]: sorts[key] };
+					}, {});
+
+					return currentSorts;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar', 'test']
+			};
+			apiListData.headers = {
+				'x-janis-page': '2',
+				'x-janis-page-size': '20'
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'asc',
+					test: 'asc'
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatSortables method and change the sortables', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar', 'test'];
+				}
+
+				formatSortables(sorts) {
+
+					const currentSorts = Object.keys(sorts).reduce((accum, key) => {
+						if(key === 'test') {
+							const customSorts = { someField: 'asc' };
+
+							return { ...accum, ...customSorts };
+						}
+
+						return { ...accum, [key]: sorts[key] };
+					}, {});
+
+					return currentSorts;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar', 'test']
+			};
+			apiListData.headers = {
+				'x-janis-page': '2',
+				'x-janis-page-size': '20'
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'asc',
+					someField: 'asc'
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
 	});
 });
