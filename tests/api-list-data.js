@@ -1325,6 +1325,187 @@ describe('Api List Data', () => {
 			});
 		});
 
+		context('When use sortableFields with objects', () => {
+			it('Should pass client defined parameters to the model get and not pass sort fields if sortableFields has invalid valueMapper', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [
+							{ name: 'bar1', valueMapper: () => {} },
+							{ name: 'bar2', valueMapper: () => [null] },
+							{ name: 'bar3', valueMapper: () => [[{}]] }
+						];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['bar1', 'bar2', 'bar3']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields passed with sort direction by default', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [{ name: 'foo' }, 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						foo: 'asc',
+						bar: 'asc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields passed modified with sort direction by default', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [{ name: 'foo', valueMapper: () => [['test']] }, 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						test: 'asc',
+						bar: 'asc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields and sort directions passed', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [{ name: 'foo', valueMapper: () => [['test', 'desc'], ['test2']] }, 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar'],
+					sortDirection: ['asc', 'desc']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						test: 'desc',
+						test2: 'asc',
+						bar: 'desc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+		});
+
 		it('Should pass client defined parameters to the model get when it receives an array to filter with ', async () => {
 
 			class MyModel {

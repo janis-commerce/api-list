@@ -125,7 +125,27 @@ Will sort the list by `foo` in direction `desc` and `bar` in direction `asc`. Th
 
 Will sort the list by `foo` in direction `asc` because is the *default value* and `bar` in direction `desc`
 
+**Using sortableFields objects with valueMapper**
+
+```js
+'use strict';
+
+const { ApiListData } = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	get sortableFields() {
+		return [{
+			name: 'foo',
+			valueMapper: () => [['bar0', 'asc'], ['bar1']] // how to use correctly
+		}];
+	}
+};
+```
+Use sortable field valueMapper for return sorts for apply in database instead of sortable field name
+
 ### get availableFilters()
+
 This is used to indicate which fields can be used to filter the list. Any other filter will return a 400 status code.
 Filters can be customized by passing an object with the following properties:
 - `name`: (string) The name of the filter param. This property is required.
