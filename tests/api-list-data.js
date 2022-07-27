@@ -1472,7 +1472,7 @@ describe('Api List Data', () => {
 
 				class MyApiListData extends ApiListData {
 					get sortableFields() {
-						return [{ name: 'foo', valueMapper: () => [['test', 'desc'], ['test2']] }, 'bar'];
+						return [{ name: 'foo', valueMapper: () => [['test', 'asc'], ['test2']] }, 'bar'];
 					}
 				}
 
@@ -1480,7 +1480,61 @@ describe('Api List Data', () => {
 				apiListData.endpoint = '/some-entity';
 				apiListData.data = {
 					sortBy: ['foo', 'bar'],
-					sortDirection: ['asc', 'desc']
+					sortDirection: ['desc', 'desc']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						test: 'asc',
+						test2: 'desc',
+						bar: 'desc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields and sort directions modified', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [
+							{
+								name: 'foo',
+								valueMapper: direction => {
+									return direction === 'asc' ? [['test', 'asc'], ['test2', 'desc']] : [['test', 'desc'], ['test2', 'asc']];
+								}
+							},
+							'bar'
+						];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar'],
+					sortDirection: ['desc', 'desc']
 				};
 				apiListData.headers = {
 					'x-janis-page': 2,

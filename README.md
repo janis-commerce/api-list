@@ -137,7 +137,16 @@ module.exports = class MyApiListData extends ApiListData {
 	get sortableFields() {
 		return [{
 			name: 'foo',
-			valueMapper: () => [['bar0', 'asc'], ['bar1']] // how to use correctly
+			valueMapper: direction => (
+				direction ? [['bar0', direction], ['bar1', direction]]: [['bar0', 'asc'], ['bar1']]
+			)
+			/*
+				The function in value mapper must be return an array of array with strings.
+				The first string is a sort name and the second is a sort direction.
+				You can use direction passed by data or default from param for make a logic.
+				If not pass a sort direction in array, by default use a direction passed by data or default.
+				The default sort direction is 'asc'
+			*/
 		}];
 	}
 };
