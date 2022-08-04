@@ -1325,6 +1325,241 @@ describe('Api List Data', () => {
 			});
 		});
 
+		context('When use sortableFields with objects', () => {
+			it('Should pass client defined parameters to the model get and not pass sort fields if sortableFields has invalid valueMapper', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [
+							{ name: 'bar1', valueMapper: () => {} },
+							{ name: 'bar2', valueMapper: () => [null] },
+							{ name: 'bar3', valueMapper: () => [[{}]] }
+						];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['bar1', 'bar2', 'bar3']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields passed with sort direction by default', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [{ name: 'foo' }, 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						foo: 'asc',
+						bar: 'asc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields passed modified with sort direction by default', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [{ name: 'foo', valueMapper: () => [['test']] }, 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						test: 'asc',
+						bar: 'asc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields and sort directions passed', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [{ name: 'foo', valueMapper: () => [['test', 'asc'], ['test2']] }, 'bar'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar'],
+					sortDirection: ['desc', 'desc']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						test: 'asc',
+						test2: 'desc',
+						bar: 'desc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should pass client defined parameters to the model get with sort fields and sort directions modified', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+					get sortableFields() {
+						return [
+							{
+								name: 'foo',
+								valueMapper: direction => {
+									return direction === 'asc' ? [['test', 'asc'], ['test2', 'desc']] : [['test', 'desc'], ['test2', 'asc']];
+								}
+							},
+							'bar'
+						];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {
+					sortBy: ['foo', 'bar'],
+					sortDirection: ['desc', 'desc']
+				};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 20
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 2,
+					limit: 20,
+					order: {
+						test: 'desc',
+						test2: 'asc',
+						bar: 'desc'
+					}
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+		});
+
 		it('Should pass client defined parameters to the model get when it receives an array to filter with ', async () => {
 
 			class MyModel {
@@ -2379,6 +2614,127 @@ describe('Api List Data', () => {
 				filters: {
 					id: '10',
 					myDateRangeStartFrom: fakeDate
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatSortables method and don\'t modify the sortables', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar', 'test'];
+				}
+
+				formatSortables(sorts) {
+
+					const currentSorts = Object.keys(sorts).reduce((accum, key, idx, array) => {
+						if(key === 'test' && !array.includes('foo'))
+							return { ...accum, someField: 'asc' };
+
+						return { ...accum, [key]: sorts[key] };
+					}, {});
+
+					return currentSorts;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar', 'test']
+			};
+			apiListData.headers = {
+				'x-janis-page': '2',
+				'x-janis-page-size': '20'
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'asc',
+					test: 'asc'
+				}
+			});
+
+			mockRequire.stop(modelPath);
+		});
+
+		it('Should use formatSortables method and change the sortables', async () => {
+
+			class MyModel {
+				async get() {
+					return [];
+				}
+			}
+
+			mockRequire(modelPath, MyModel);
+
+			sinon.spy(MyModel.prototype, 'get');
+
+			class MyApiListData extends ApiListData {
+
+				get sortableFields() {
+					return ['foo', 'bar', 'test'];
+				}
+
+				formatSortables(sorts) {
+
+					const currentSorts = Object.keys(sorts).reduce((accum, key) => {
+						if(key === 'test') {
+							const customSorts = { someField: 'asc' };
+
+							return { ...accum, ...customSorts };
+						}
+
+						return { ...accum, [key]: sorts[key] };
+					}, {});
+
+					return currentSorts;
+				}
+			}
+
+			const apiListData = new MyApiListData();
+
+			apiListData.endpoint = '/some-entity';
+			apiListData.data = {
+				sortBy: ['foo', 'bar', 'test']
+			};
+			apiListData.headers = {
+				'x-janis-page': '2',
+				'x-janis-page-size': '20'
+			};
+
+			await apiListData.validate();
+
+			await apiListData.process();
+
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+				page: 2,
+				limit: 20,
+				order: {
+					foo: 'asc',
+					bar: 'asc',
+					someField: 'asc'
 				}
 			});
 

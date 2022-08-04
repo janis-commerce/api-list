@@ -125,7 +125,42 @@ Will sort the list by `foo` in direction `desc` and `bar` in direction `asc`. Th
 
 Will sort the list by `foo` in direction `asc` because is the *default value* and `bar` in direction `desc`
 
+**Using sortableFields objects with valueMapper**
+
+```js
+'use strict';
+
+const { ApiListData } = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	get sortableFields() {
+		return [
+			{
+				name: 'foo',
+				valueMapper: () => [['bar0', 'asc'], ['bar1']]
+				/*
+					The function in valueMapper must be return an array of array with strings.
+					The first string is a sort name and the second is a sort direction.
+					If not pass a sort direction in array, by default use a direction passed by data for 'foo' or the default sort direction.
+					The default sort direction is 'asc'.
+				*/
+			},
+			{
+				name: 'bar',
+				valueMapper: direction => (
+					direction ? [['bar0', direction], ['bar1', direction]]: [['bar0', 'asc'], ['bar1']]
+				)
+				// You can use the direction passed from the data for 'bar' or the default sort direction to make a logic that comes in the function parameter
+			}
+		];
+	}
+};
+```
+Use sortable field valueMapper for return sorts for apply in database instead of sortable field name
+
 ### get availableFilters()
+
 This is used to indicate which fields can be used to filter the list. Any other filter will return a 400 status code.
 Filters can be customized by passing an object with the following properties:
 - `name`: (string) The name of the filter param. This property is required.
@@ -340,4 +375,42 @@ module.exports = class MyApi extends ApiListData {
     This will allow the API to use custom query parameters, example:
     https://domain.com/api/my-api-list?numericParam=1
 */
+```
+
+### async formatSortables(sortables)
+_Since 5.4.0_
+
+This is used to programatically alter the sortables. It will be executed after parsing static and dynamic sortables.
+If you return a falsy value it will not override them. Otherwise, the return value will be used as sortables.
+
+You can use this method, for example, to build complex sorting.
+
+For example:
+
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	async formatSortables(sortables) {
+
+		const currentSorts = Object.keys(sortables).reduce((accum, key) => {
+
+			// We can use 'customFilter' as an identifier for build a complex sorting
+			if(key === 'customFilter') {
+				const customSorts = { someField: 'asc', otherField: 'desc' };
+
+				return { ...accum, ...customSorts };
+			}
+
+			return { ...accum, [key]: sorts[key] };
+		}, {});
+
+		return currentSorts;
+	}
+};
 ```
