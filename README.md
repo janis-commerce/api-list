@@ -61,17 +61,7 @@ module.exports = class MyApiListData extends ApiListData {
 };
 ```
 
-## List APIs with parents
-
-If you have for example, a list API for a sub-entity of one specific record, the parent will be automatically be added as a filter.
-
-**Important:** The parent entity must be listed as an available filter
-
-For example, the following endpoint: `/api/parent-entity/1/sub-entity`, will be a list of the sub-entity, and `parentEntity: '1'` will be set as a filter.
-
-It could be thought as if it's equivalent to the following request: `/api/sub-entity?filters[parentEntity]=1`
-
-## MyApiListData
+## ApiListData
 
 The following getters and methods can be used to customize and validate your List API.
 All of them are optional.
@@ -84,10 +74,16 @@ This is used to indicate which fields should be selected from the DB.
 This allows you to select fields from other tables, and automatically join them in relational databases.
 This fields **must** be defined in the model.
 
+### async formatRows(rows)
+You can use this to format your records before they are returned.
+For example, mapping DB friendly values to user friendly values, add default values, translation keys, etc.
+
 ### get sortableFields()
 This is used to indicate which fields can be used to sort the list. Any other sort field will return a 400 status code.
 
-For example:
+<details>
+	<summary>Example using sortableFields()</summary>
+
 ```js
 'use strict';
 
@@ -125,7 +121,12 @@ Will sort the list by `foo` in direction `desc` and `bar` in direction `asc`. Th
 
 Will sort the list by `foo` in direction `asc` because is the *default value* and `bar` in direction `desc`
 
-**Using sortableFields objects with valueMapper**
+</details>
+
+<details>
+	<summary>**Using sortableFields objects with valueMapper**</summary>
+
+Use sortable field valueMapper to return sorts for apply in database instead of sortable field name
 
 ```js
 'use strict';
@@ -157,7 +158,8 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
-Use sortable field valueMapper for return sorts for apply in database instead of sortable field name
+
+</details>
 
 ### get availableFilters()
 
@@ -168,19 +170,16 @@ Filters can be customized by passing an object with the following properties:
 If it's a function (_since 3.1.0_), it must return a string and it will receive the following arguments: `(filterConfiguration, mappedValue, originalValue)`
 - `valueMapper`: (function) A function to be called on the filter's value. This is optional.
 
-### async formatRows(rows)
-You can use this to format your records before they are returned.
-For example, mapping DB friendly values to user friendly values, add default values, translation keys, etc.
-
-## Common filter value mappers
+### Value mappers
 
 _Since 3.1.0_
 
-This lib also exports some common filter value mappers (to use as `valueMapper` in your `availableFilters` getter) so you don't need to implement them yourself.
+This lib also exports some value mappers (to use as `valueMapper`) so you don't need to implement them yourself.
 
 > :warning: `startOfTheDayMapper` and `endOfTheDayMapper` are now deprecated. See [migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper.md).
 
-They are explained here with examples:
+<details>
+	<summary>They are explained here with examples:</summary>
 
 ```js
 'use strict';
@@ -233,6 +232,7 @@ module.exports = class MyApiListData extends ApiListData {
 
 };
 ```
+</details>
 
 ### get searchFilters()
 
@@ -242,7 +242,9 @@ This is used to indicate which fields will be used to mapped multiple filters (O
 If it don't exist or return an empty array and try to use `search` filter will return 400 status code.
 Can be combined with other filters.
 
-For example:
+<details>
+	<summary>Example using searchFilters()</summary>
+
 ```js
 'use strict';
 
@@ -262,20 +264,23 @@ module.exports = class MyApiListData extends ApiListData {
 
 Will filter the list for `someField: 1` or `otherField: 1`
 
-* `/api/entity?filters[search]=fo` with a uncomplete word.
+* `/api/entity?filters[search]=fo` with a uncompleted word.
 
-Will filter the list for `someField: fo` or `otherField: fo` and will do a parcial filter (like using `searchMapper`).
+Will filter the list for `someField: fo` or `otherField: fo` and will do a partial filter (like using `searchMapper`).
 
 * `/api/entity?filters[search]=foo bar` with multiples words separated by white spaces.
 
 Will filter the list for `someField: foo` or `someField: bar` or `otherField: foo` or `otherField: bar`.
+
+</details>
 
 ### get staticFilters()
 _Since 3.4.0_
 
 This is used to set a filter with a fixed value for all requests.
 
-For example:
+<details>
+	<summary>Example using staticFilters()</summary>
 
 ```js
 'use strict';
@@ -297,6 +302,8 @@ module.exports = class MyApiListData extends ApiListData {
 
 This will add two filters (`someExactDate` and `clients`) to the request filters (if any). The static filters will not be overriden by user-provided filters.
 
+</details>
+
 ### async formatFilters(filters)
 _Since 4.1.0_
 
@@ -305,7 +312,8 @@ If you return a falsy value it will not override them. Otherwise, the return val
 
 You can use this method, for example, to build complex filters or to ensure that a Date range filter is always being applied.
 
-For example:
+<details>
+	<summary>Example using formatFilters()</summary>
 
 ```js
 'use strict';
@@ -331,6 +339,7 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
+</details>
 
 ### get customParameters()
 
@@ -342,7 +351,8 @@ Can be customized by passing a string or object with the following properties:
 
 The `customParameters` and its values will be in `this.data` to use them in your API.
 
-For example:
+<details>
+	<summary>Example using customParameters()</summary>
 
 ```js
 'use strict';
@@ -370,12 +380,11 @@ module.exports = class MyApi extends ApiListData {
 		return rows;
 	}
 };
-
-/*
-    This will allow the API to use custom query parameters, example:
-    https://domain.com/api/my-api-list?numericParam=1
-*/
 ```
+
+* This will allow the API to use custom query parameters. Example: https://domain.com/api/my-api-list?numericParam=1
+
+</details>
 
 ### async formatSortables(sortables)
 _Since 5.4.0_
@@ -385,7 +394,8 @@ If you return a falsy value it will not override them. Otherwise, the return val
 
 You can use this method, for example, to build complex sorting.
 
-For example:
+<details>
+	<summary>Example using formatSortables()</summary>
 
 ```js
 'use strict';
@@ -398,27 +408,30 @@ module.exports = class MyApiListData extends ApiListData {
 
 	async formatSortables(sortables) {
 
-		const currentSorts = Object.keys(sortables).reduce((accum, key) => {
+		return Object.keys(sortables).reduce((currentSorts, key) => {
 
 			// We can use 'customFilter' as an identifier for build a complex sorting
 			if(key === 'customFilter') {
 				const customSorts = { someField: 'asc', otherField: 'desc' };
 
-				return { ...accum, ...customSorts };
+				return { ...currentSorts, ...customSorts };
 			}
 
-			return { ...accum, [key]: sorts[key] };
-		}, {});
+			return { ...currentSorts, [key]: sorts[key] };
 
-		return currentSorts;
+		}, {});
 	}
 };
 ```
+</details>
 
 ### get maxPageSize()
 _Since 5.5.0_
 
 This _getter_ allow to configure a different maximum page-size than default: **100**.
+
+<details>
+	<summary>Example using maxPageSize()</summary>
 
 ```js
 'use strict';
@@ -434,3 +447,38 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
+</details>
+
+## Request Headers
+
+An ApiListData accepts request _headers_ to modify default behavior.
+
+|Header|Description|Default|
+|--|--|--|
+|_x-janis-page_|Configure the page of the list to be consulted|**1**|
+|_x-janis-page-size_|The amount of rows to be returned. (max **100**)|**60**||
+|_x-janis-totals_|The package will calculate total using `getTotals()`. _Since 5.6.0_.|**true**||
+
+> ℹ️ The maximum page size can be modified with `maxPageSize()` _getter_
+
+## Response Headers
+
+An ApiListData will response the following _headers_.
+
+|Header|Description|
+|--|--|
+|_x-janis-page_|The page used to perform the `get()` command|
+|_x-janis-page-size_|The page size used in the `get()` command|
+|_x-janis-total_|The total of documents according the filters applied. Calculated with `getTotals()`|
+
+> ℹ️ The total calculation can be avoided using request _header_ _x-janis-totals_ as **false**
+
+## List APIs with parents
+
+If you have for example, a list API for a sub-entity of one specific record, the parent will be automatically be added as a filter.
+
+**Important:** The parent entity must be listed as an available filter
+
+For example, the following endpoint: `/api/parent-entity/1/sub-entity`, will be a list of the sub-entity, and `parentEntity: '1'` will be set as a filter.
+
+It could be thought as if it's equivalent to the following request: `/api/sub-entity?filters[parentEntity]=1`

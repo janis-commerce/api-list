@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.6.0] - 2022-08-25
+### Added
+- Request _header_ `x-janis-totals` to avoid `getTotals()` query and `x-janis-total` response _header_
+
+### Changed
+- Reorganized **README**
+
 ## [5.5.0] - 2022-08-25
 ### Added
 - Getter `maxPageSize` to configure a bigger page-size on each **ApiList**
