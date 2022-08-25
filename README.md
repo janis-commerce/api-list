@@ -414,3 +414,23 @@ module.exports = class MyApiListData extends ApiListData {
 	}
 };
 ```
+
+### get maxPageSize()
+_Since 5.5.0_
+
+This _getter_ allow to configure a different maximum page-size than default: **100**.
+
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+module.exports = class MyApiListData extends ApiListData {
+
+	get maxPageSize() {
+		return 500;
+	}
+};
+```

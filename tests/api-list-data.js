@@ -16,8 +16,7 @@ describe('Api List Data', () => {
 		sinon.restore();
 	});
 
-	class Model {
-	}
+	class Model {}
 
 	const modelPath = path.join(process.cwd(), '', 'models', 'some-entity');
 	const modelPathWithMsPath = path.join(process.cwd(), 'src', 'models', 'some-entity');
@@ -2739,6 +2738,83 @@ describe('Api List Data', () => {
 			});
 
 			mockRequire.stop(modelPath);
+		});
+
+		describe('maxPageSize getter', () => {
+
+			it('Should use a big page-size when Api allows it', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+
+					get maxPageSize() {
+						return 1500;
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {
+					'x-janis-page': 1,
+					'x-janis-page-size': 1200
+				};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+					page: 1,
+					limit: 1200
+				});
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should reject validation when the page-size configured is overcome', async () => {
+
+				class MyModel {
+					async get() {
+						return [];
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+
+				class MyApiListData extends ApiListData {
+
+					get maxPageSize() {
+						return 1500;
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {
+					'x-janis-page': 2,
+					'x-janis-page-size': 5000
+				};
+
+				await assert.rejects(() => apiListData.validate(), ApiListError);
+
+				sinon.assert.notCalled(MyModel.prototype.get);
+
+				mockRequire.stop(modelPath);
+			});
+
 		});
 	});
 });

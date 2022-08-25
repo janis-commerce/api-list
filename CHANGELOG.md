@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.5.0] - 2022-08-25
+### Added
+- Getter `maxPageSize` to configure a bigger page-size on each **ApiList**
+
 ## [5.4.0] - 2022-08-04
 ### Added
-- Now los `sortableFields` can be a object with a `valueMapper` to make a custom sort
+- Now the `sortableFields` can be a object with a `valueMapper` to make a custom sort
 
 ## [5.3.2] - 2022-04-29
 ### Changed
