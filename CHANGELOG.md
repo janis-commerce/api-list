@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.6.1] - 2022-08-25
+### Fixed
+- Mapping request _header_ `x-janis-totals` as boolean to be received and used.
+
 ## [5.6.0] - 2022-08-25
 ### Added
 - Request _header_ `x-janis-totals` to avoid `getTotals()` query and `x-janis-total` response _header_

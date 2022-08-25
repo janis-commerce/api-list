@@ -2885,12 +2885,76 @@ describe('Api List Data', () => {
 				assert.deepStrictEqual(apiListData.response.headers, { 'x-janis-total': 1 });
 			});
 
-			it('Should no calculate totals when x-janis-totals header received as false', async () => {
+			it('Should calculate totals when x-janis-totals header received as true as string', async () => {
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = { 'x-janis-totals': 'true' };
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				assert.deepStrictEqual(apiListData.response.headers, { 'x-janis-total': 1 });
+			});
+
+			it('Should calculate totals when x-janis-totals header received as 1 as string', async () => {
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = { 'x-janis-totals': '1' };
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				assert.deepStrictEqual(apiListData.response.headers, { 'x-janis-total': 1 });
+			});
+
+			it('Should not calculate totals when x-janis-totals header received as false', async () => {
 
 				const apiListData = new MyApiListData();
 				apiListData.endpoint = '/some-entity';
 				apiListData.data = {};
 				apiListData.headers = { 'x-janis-totals': false };
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.notCalled(MyModel.prototype.getTotals);
+
+				assert.deepStrictEqual(apiListData.response.headers, {});
+			});
+
+			it('Should not calculate totals when x-janis-totals header received as false as string', async () => {
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = { 'x-janis-totals': 'false' };
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				sinon.assert.notCalled(MyModel.prototype.getTotals);
+
+				assert.deepStrictEqual(apiListData.response.headers, {});
+			});
+
+			it('Should not calculate totals when x-janis-totals header received as 0 as string', async () => {
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = { 'x-janis-totals': '0' };
 
 				await apiListData.validate();
 
