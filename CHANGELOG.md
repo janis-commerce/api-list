@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Getter `fields` to reduce the api response to just the defined fields.
 
 ## [5.6.1] - 2022-08-25
 ### Fixed
