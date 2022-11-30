@@ -2819,6 +2819,229 @@ describe('Api List Data', () => {
 
 		});
 
+		context('fields Getter', () => {
+			const row = {
+				id: '63740e295a960370b0ef0045',
+				a: 'test',
+				b: 'test',
+				c: 'test'
+			};
+
+			const deletefields = (data, fields) => {
+				const rowCopy = { ...data };
+
+				fields.forEach(field => {
+					delete rowCopy[field];
+				});
+
+				return rowCopy;
+			};
+
+			it('Should not skip any field if fields getter is not defined', async () => {
+				class MyModel {
+					async get() {
+						return [row];
+					}
+
+					async getTotals() {
+						return { total: 1 };
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+				sinon.spy(MyModel.prototype, 'getTotals');
+
+				const apiListData = new ApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				assert.deepStrictEqual(apiListData.response.body, [row]);
+				assert.deepStrictEqual(apiListData.response.headers, {
+					'x-janis-total': 1
+				});
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should not skip any field if fields getter does not return an array', async () => {
+				class MyModel {
+					async get() {
+						return [row];
+					}
+
+					async getTotals() {
+						return { total: 1 };
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+				sinon.spy(MyModel.prototype, 'getTotals');
+
+				class MyApiListData extends ApiListData {
+					get fields() {
+						return 13;
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				assert.deepStrictEqual(apiListData.response.body, [row]);
+				assert.deepStrictEqual(apiListData.response.headers, {
+					'x-janis-total': 1
+				});
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should not skip any field if fields getter returns an empty array', async () => {
+				class MyModel {
+					async get() {
+						return [row];
+					}
+
+					async getTotals() {
+						return { total: 1 };
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+				sinon.spy(MyModel.prototype, 'getTotals');
+
+				class MyApiListData extends ApiListData {
+					get fields() {
+						return [];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				assert.deepStrictEqual(apiListData.response.body, [row]);
+				assert.deepStrictEqual(apiListData.response.headers, {
+					'x-janis-total': 1
+				});
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should return only the fields that are in the fields getter and the id', async () => {
+				class MyModel {
+					async get() {
+						return [row];
+					}
+
+					async getTotals() {
+						return { total: 1 };
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+				sinon.spy(MyModel.prototype, 'getTotals');
+
+				class MyApiListData extends ApiListData {
+					get fields() {
+						return ['a'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				assert.deepStrictEqual(apiListData.response.body, [deletefields(row, ['b', 'c'])]);
+				assert.deepStrictEqual(apiListData.response.headers, {
+					'x-janis-total': 1
+				});
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				mockRequire.stop(modelPath);
+			});
+
+			it('Should just ignore a field if it is not found in the row', async () => {
+				class MyModel {
+					async get() {
+						return [row];
+					}
+
+					async getTotals() {
+						return { total: 1 };
+					}
+				}
+
+				mockRequire(modelPath, MyModel);
+
+				sinon.spy(MyModel.prototype, 'get');
+				sinon.spy(MyModel.prototype, 'getTotals');
+
+				class MyApiListData extends ApiListData {
+					get fields() {
+						return ['a', 'z'];
+					}
+				}
+
+				const apiListData = new MyApiListData();
+				apiListData.endpoint = '/some-entity';
+				apiListData.data = {};
+				apiListData.headers = {};
+
+				await apiListData.validate();
+
+				await apiListData.process();
+
+				assert.deepStrictEqual(apiListData.response.body, [deletefields(row, ['b', 'c'])]);
+				assert.deepStrictEqual(apiListData.response.headers, {
+					'x-janis-total': 1
+				});
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+				mockRequire.stop(modelPath);
+			});
+		});
+
 		describe('Calculate totals', () => {
 
 			class MyApiListData extends ApiListData {
