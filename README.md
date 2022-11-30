@@ -25,6 +25,10 @@ module.exports = class MyApiListData extends ApiListData {
 		return ['id', 'name', 'status'];
 	}
 
+	get fields() {
+		return ['name', 'status'];
+	}
+
 	get sortableFields() {
 		return [
 			'id',
@@ -73,6 +77,11 @@ Returns model name. It is intent to be used to change the model's name and it wi
 This is used to indicate which fields should be selected from the DB.
 This allows you to select fields from other tables, and automatically join them in relational databases.
 This fields **must** be defined in the model.
+
+### get fields()
+This is used to select the fields that will be returned.
+The id field is always returned.
+If a field is not found in the row, it will just ignore it.
 
 ### async formatRows(rows)
 You can use this to format your records before they are returned.
