@@ -2820,6 +2820,7 @@ describe('Api List Data', () => {
 		});
 
 		context('fields Getter', () => {
+
 			const row = {
 				id: '63740e295a960370b0ef0045',
 				a: 'test',
@@ -2827,27 +2828,27 @@ describe('Api List Data', () => {
 				c: 'test'
 			};
 
-			const deletefields = (data, fields) => {
-				const rowCopy = { ...data };
+			class MyModel {
+				async get() {
+					return [row];
+				}
+
+				async getTotals() {
+					return { total: 1 };
+				}
+			}
+
+			const selectFields = fields => {
+				const data = {};
 
 				fields.forEach(field => {
-					delete rowCopy[field];
+					data[field] = row[field];
 				});
 
-				return rowCopy;
+				return data;
 			};
 
 			it('Should not skip any field if fields getter is not defined', async () => {
-				class MyModel {
-					async get() {
-						return [row];
-					}
-
-					async getTotals() {
-						return { total: 1 };
-					}
-				}
-
 				mockRequire(modelPath, MyModel);
 
 				sinon.spy(MyModel.prototype, 'get');
@@ -2874,16 +2875,6 @@ describe('Api List Data', () => {
 			});
 
 			it('Should not skip any field if fields getter does not return an array', async () => {
-				class MyModel {
-					async get() {
-						return [row];
-					}
-
-					async getTotals() {
-						return { total: 1 };
-					}
-				}
-
 				mockRequire(modelPath, MyModel);
 
 				sinon.spy(MyModel.prototype, 'get');
@@ -2916,16 +2907,6 @@ describe('Api List Data', () => {
 			});
 
 			it('Should not skip any field if fields getter returns an empty array', async () => {
-				class MyModel {
-					async get() {
-						return [row];
-					}
-
-					async getTotals() {
-						return { total: 1 };
-					}
-				}
-
 				mockRequire(modelPath, MyModel);
 
 				sinon.spy(MyModel.prototype, 'get');
@@ -2958,16 +2939,6 @@ describe('Api List Data', () => {
 			});
 
 			it('Should return only the fields that are in the fields getter and the id', async () => {
-				class MyModel {
-					async get() {
-						return [row];
-					}
-
-					async getTotals() {
-						return { total: 1 };
-					}
-				}
-
 				mockRequire(modelPath, MyModel);
 
 				sinon.spy(MyModel.prototype, 'get');
@@ -2988,7 +2959,7 @@ describe('Api List Data', () => {
 
 				await apiListData.process();
 
-				assert.deepStrictEqual(apiListData.response.body, [deletefields(row, ['b', 'c'])]);
+				assert.deepStrictEqual(apiListData.response.body, [selectFields(['id', 'a'])]);
 				assert.deepStrictEqual(apiListData.response.headers, {
 					'x-janis-total': 1
 				});
@@ -3000,16 +2971,6 @@ describe('Api List Data', () => {
 			});
 
 			it('Should just ignore a field if it is not found in the row', async () => {
-				class MyModel {
-					async get() {
-						return [row];
-					}
-
-					async getTotals() {
-						return { total: 1 };
-					}
-				}
-
 				mockRequire(modelPath, MyModel);
 
 				sinon.spy(MyModel.prototype, 'get');
@@ -3030,7 +2991,7 @@ describe('Api List Data', () => {
 
 				await apiListData.process();
 
-				assert.deepStrictEqual(apiListData.response.body, [deletefields(row, ['b', 'c'])]);
+				assert.deepStrictEqual(apiListData.response.body, [selectFields(['id', 'a'])]);
 				assert.deepStrictEqual(apiListData.response.headers, {
 					'x-janis-total': 1
 				});
