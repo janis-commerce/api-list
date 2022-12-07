@@ -79,8 +79,8 @@ This allows you to select fields from other tables, and automatically join them 
 This fields **must** be defined in the model.
 
 ### get fields()
-This is used to select the fields that will be returned.
-The id field is always returned.
+This is used to select the fields that will be returned.  
+The id field is always returned.  
 If a field is not found in the row, it will just ignore it.
 
 ### async formatRows(rows)
