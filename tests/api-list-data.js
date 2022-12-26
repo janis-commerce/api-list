@@ -2829,13 +2829,9 @@ describe('Api List Data', () => {
 			};
 
 			class MyModel {
-				async get() {
-					return [row];
-				}
+				get() {}
 
-				async getTotals() {
-					return { total: 1 };
-				}
+				getTotals() {}
 			}
 
 			const selectFields = fields => {
@@ -2848,11 +2844,20 @@ describe('Api List Data', () => {
 				return data;
 			};
 
+			beforeEach(() => {
+				sinon.stub(MyModel.prototype, 'get')
+					.resolves([row]);
+				sinon.stub(MyModel.prototype, 'getTotals')
+					.resolves({ total: 1 });
+			});
+
+			afterEach(() => {
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
+				sinon.assert.calledOnce(MyModel.prototype.getTotals);
+			});
+
 			it('Should not skip any field if fields getter is not defined', async () => {
 				mockRequire(modelPath, MyModel);
-
-				sinon.spy(MyModel.prototype, 'get');
-				sinon.spy(MyModel.prototype, 'getTotals');
 
 				const apiListData = new ApiListData();
 				apiListData.endpoint = '/some-entity';
@@ -2868,17 +2873,11 @@ describe('Api List Data', () => {
 					'x-janis-total': 1
 				});
 
-				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
 				mockRequire.stop(modelPath);
 			});
 
 			it('Should not skip any field if fields getter does not return an array', async () => {
 				mockRequire(modelPath, MyModel);
-
-				sinon.spy(MyModel.prototype, 'get');
-				sinon.spy(MyModel.prototype, 'getTotals');
 
 				class MyApiListData extends ApiListData {
 					get fields() {
@@ -2900,17 +2899,11 @@ describe('Api List Data', () => {
 					'x-janis-total': 1
 				});
 
-				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
 				mockRequire.stop(modelPath);
 			});
 
 			it('Should not skip any field if fields getter returns an empty array', async () => {
 				mockRequire(modelPath, MyModel);
-
-				sinon.spy(MyModel.prototype, 'get');
-				sinon.spy(MyModel.prototype, 'getTotals');
 
 				class MyApiListData extends ApiListData {
 					get fields() {
@@ -2932,17 +2925,11 @@ describe('Api List Data', () => {
 					'x-janis-total': 1
 				});
 
-				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
 				mockRequire.stop(modelPath);
 			});
 
 			it('Should return only the fields that are in the fields getter and the id', async () => {
 				mockRequire(modelPath, MyModel);
-
-				sinon.spy(MyModel.prototype, 'get');
-				sinon.spy(MyModel.prototype, 'getTotals');
 
 				class MyApiListData extends ApiListData {
 					get fields() {
@@ -2964,17 +2951,11 @@ describe('Api List Data', () => {
 					'x-janis-total': 1
 				});
 
-				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
 				mockRequire.stop(modelPath);
 			});
 
 			it('Should just ignore a field if it is not found in the row', async () => {
 				mockRequire(modelPath, MyModel);
-
-				sinon.spy(MyModel.prototype, 'get');
-				sinon.spy(MyModel.prototype, 'getTotals');
 
 				class MyApiListData extends ApiListData {
 					get fields() {
@@ -2995,9 +2976,6 @@ describe('Api List Data', () => {
 				assert.deepStrictEqual(apiListData.response.headers, {
 					'x-janis-total': 1
 				});
-
-				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
 
 				mockRequire.stop(modelPath);
 			});
