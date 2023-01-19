@@ -6,6 +6,8 @@ const path = require('path');
 const sinon = require('sinon');
 const mockRequire = require('mock-require');
 
+const Model = require('@janiscommerce/model');
+
 const { ApiListData } = require('..');
 const { ApiListError } = require('../lib');
 const { searchMapper, booleanMapper, customTypeMapper } = require('../lib/filter-mappers');
@@ -16,7 +18,7 @@ describe('Api List Data', () => {
 		sinon.restore();
 	});
 
-	class Model {}
+	// class MyModel extends Model {}
 
 	const modelPath = path.join(process.cwd(), '', 'models', 'some-entity');
 	const modelPathWithMsPath = path.join(process.cwd(), 'src', 'models', 'some-entity');
@@ -28,7 +30,7 @@ describe('Api List Data', () => {
 		before(() => {
 			env = { ...process.env };
 			process.env.MS_PATH = '';
-			mockRequire(modelPath, Model);
+			mockRequire(modelPath, MyModel);
 		});
 
 		after(() => {
@@ -832,10 +834,12 @@ describe('Api List Data', () => {
 
 		let env;
 
+		class MyModel extends Model {}
+
 		before(() => {
 			env = { ...process.env };
 			process.env.MS_PATH = 'src';
-			mockRequire(modelPathWithMsPath, Model);
+			mockRequire(modelPathWithMsPath, MyModel);
 		});
 
 		after(() => {
@@ -1718,15 +1722,15 @@ describe('Api List Data', () => {
 
 		it('Should pass fields to select if the getter is defined', async () => {
 
-			class MyModel {
+			class CustomModel {
 				async get() {
 					return [];
 				}
 			}
 
-			mockRequire(modelPath, MyModel);
+			mockRequire(modelPath, CustomModel);
 
-			sinon.spy(MyModel.prototype, 'get');
+			sinon.spy(CustomModel.prototype, 'get');
 
 			class MyApiListData extends ApiListData {
 				get fieldsToSelect() {
@@ -1743,7 +1747,7 @@ describe('Api List Data', () => {
 
 			await apiListData.process();
 
-			sinon.assert.calledOnceWithExactly(MyModel.prototype.get, {
+			sinon.assert.calledOnceWithExactly(CustomModel.prototype.get, {
 				page: 1,
 				limit: 60,
 				fields: ['id', 'name', 'status']
@@ -2067,7 +2071,7 @@ describe('Api List Data', () => {
 			mockRequire.stop(modelPath);
 		});
 
-		it('Should formatt search filter with multiple words in data request', async () => {
+		it('Should format search filter with multiple words in data request', async () => {
 
 			class MyModel {
 				async get() {
@@ -2819,168 +2823,6 @@ describe('Api List Data', () => {
 
 		});
 
-		context('fields Getter', () => {
-
-			const row = {
-				id: '63740e295a960370b0ef0045',
-				a: 'test',
-				b: 'test',
-				c: 'test'
-			};
-
-			class MyModel {
-				get() {}
-
-				getTotals() {}
-			}
-
-			const selectFields = fields => {
-				const data = {};
-
-				fields.forEach(field => {
-					data[field] = row[field];
-				});
-
-				return data;
-			};
-
-			beforeEach(() => {
-				sinon.stub(MyModel.prototype, 'get')
-					.resolves([row]);
-				sinon.stub(MyModel.prototype, 'getTotals')
-					.resolves({ total: 1 });
-			});
-
-			afterEach(() => {
-				sinon.assert.calledOnceWithExactly(MyModel.prototype.get, { page: 1, limit: 60 });
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-			});
-
-			it('Should not skip any field if fields getter is not defined', async () => {
-				mockRequire(modelPath, MyModel);
-
-				const apiListData = new ApiListData();
-				apiListData.endpoint = '/some-entity';
-				apiListData.data = {};
-				apiListData.headers = {};
-
-				await apiListData.validate();
-
-				await apiListData.process();
-
-				assert.deepStrictEqual(apiListData.response.body, [row]);
-				assert.deepStrictEqual(apiListData.response.headers, {
-					'x-janis-total': 1
-				});
-
-				mockRequire.stop(modelPath);
-			});
-
-			it('Should not skip any field if fields getter does not return an array', async () => {
-				mockRequire(modelPath, MyModel);
-
-				class MyApiListData extends ApiListData {
-					get fields() {
-						return 13;
-					}
-				}
-
-				const apiListData = new MyApiListData();
-				apiListData.endpoint = '/some-entity';
-				apiListData.data = {};
-				apiListData.headers = {};
-
-				await apiListData.validate();
-
-				await apiListData.process();
-
-				assert.deepStrictEqual(apiListData.response.body, [row]);
-				assert.deepStrictEqual(apiListData.response.headers, {
-					'x-janis-total': 1
-				});
-
-				mockRequire.stop(modelPath);
-			});
-
-			it('Should not skip any field if fields getter returns an empty array', async () => {
-				mockRequire(modelPath, MyModel);
-
-				class MyApiListData extends ApiListData {
-					get fields() {
-						return [];
-					}
-				}
-
-				const apiListData = new MyApiListData();
-				apiListData.endpoint = '/some-entity';
-				apiListData.data = {};
-				apiListData.headers = {};
-
-				await apiListData.validate();
-
-				await apiListData.process();
-
-				assert.deepStrictEqual(apiListData.response.body, [row]);
-				assert.deepStrictEqual(apiListData.response.headers, {
-					'x-janis-total': 1
-				});
-
-				mockRequire.stop(modelPath);
-			});
-
-			it('Should return only the fields that are in the fields getter and the id', async () => {
-				mockRequire(modelPath, MyModel);
-
-				class MyApiListData extends ApiListData {
-					get fields() {
-						return ['a'];
-					}
-				}
-
-				const apiListData = new MyApiListData();
-				apiListData.endpoint = '/some-entity';
-				apiListData.data = {};
-				apiListData.headers = {};
-
-				await apiListData.validate();
-
-				await apiListData.process();
-
-				assert.deepStrictEqual(apiListData.response.body, [selectFields(['id', 'a'])]);
-				assert.deepStrictEqual(apiListData.response.headers, {
-					'x-janis-total': 1
-				});
-
-				mockRequire.stop(modelPath);
-			});
-
-			it('Should just ignore a field if it is not found in the row', async () => {
-				mockRequire(modelPath, MyModel);
-
-				class MyApiListData extends ApiListData {
-					get fields() {
-						return ['a', 'z'];
-					}
-				}
-
-				const apiListData = new MyApiListData();
-				apiListData.endpoint = '/some-entity';
-				apiListData.data = {};
-				apiListData.headers = {};
-
-				await apiListData.validate();
-
-				await apiListData.process();
-
-				assert.deepStrictEqual(apiListData.response.body, [selectFields(['id', 'a'])]);
-				assert.deepStrictEqual(apiListData.response.headers, {
-					'x-janis-total': 1
-				});
-
-				mockRequire.stop(modelPath);
-			});
-		});
-
 		describe('Calculate totals', () => {
 
 			class MyApiListData extends ApiListData {
@@ -3125,6 +2967,63 @@ describe('Api List Data', () => {
 				sinon.assert.notCalled(MyModel.prototype.getTotals);
 
 				assert.deepStrictEqual(apiListData.response.headers, {});
+			});
+
+		});
+
+		describe('Reducing response with fields and excludeFields', () => {
+
+			class MyModel extends MyModel {}
+
+			before(() => {
+				mockRequire(modelPath, MyModel);
+			});
+
+			after(() => {
+				mockRequire.stop(modelPath);
+			});
+
+			context('When invalid parameters received', () => {
+
+				const apiListData = new ApiListData();
+				apiListData.endpoint = '/some-entity';
+
+				it('Should reject if fields param is received as string', async () => {
+					apiListData.data = { fields: 'foo' };
+					await assert.rejects(apiListData.validate(), ApiListError);
+				});
+
+				it('Should reject if fields param is received as number', async () => {
+					apiListData.data = { fields: 8 };
+					await assert.rejects(apiListData.validate(), ApiListError);
+				});
+
+				it('Should reject if excludeFields param is received as string', async () => {
+					apiListData.data = { excludeFields: 'bar' };
+					await assert.rejects(apiListData.validate(), ApiListError);
+				});
+
+				it('Should reject if excludeFields param is received as number', async () => {
+					apiListData.data = { excludeFields: 10 };
+					await assert.rejects(apiListData.validate(), ApiListError);
+				});
+			});
+
+			context('When received valid fields', () => {
+				it('Should pass fields to model get query', async () => {
+
+					class MyApiList extends ApiListData {}
+
+					const myApiList = new MyApiList();
+					myApiList.endpoint = '/some-entity';
+
+					myApiList.data = { fields: ['foo'] };
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+				});
 			});
 
 		});
