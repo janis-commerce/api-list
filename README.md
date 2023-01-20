@@ -22,11 +22,15 @@ const { ApiListData } = require('@janiscommerce/api-list');
 module.exports = class MyApiListData extends ApiListData {
 
 	get fieldsToSelect() {
-		return ['id', 'name', 'status'];
+		return ['name', 'status'];
 	}
 
-	get fields() {
-		return ['name', 'status'];
+	get fieldsToExclude() {
+		return ['error'];
+	}
+
+	get fixedFields() {
+		return ['code'];
 	}
 
 	get sortableFields() {
@@ -74,20 +78,33 @@ All of them are optional.
 Returns model name. It is intent to be used to change the model's name and it will not get the model name from endpoint
 
 ### get fieldsToSelect()
-This is used to indicate which fields should be selected from the DB.
+This is used to determinate which fields should be selected from the DB.
 
-This allows you to select fields from other tables, and automatically join them in relational databases.
-This fields **must** be defined in the model.
+**Important**: The `id` field is always returned.
 
-### get fields()
+If set as `false`. The _parameter_ `fields` will be ignored.
 
-_Since_ `5.7.0`
+If a field is not found in the document it will be ignored.
 
-This is used to select the fields that will be returned.
+### get fieldsToExclude()
 
-The id field is always returned.
+_Since_ `5.8.0`
 
-If a field is not found in the row, it will just ignore it.
+This is used to determinate witch fields must be excluded from the response.
+
+If set as `false`. The _parameter_ `excludeFields` will be ignored.
+
+**Important**: The `id` field is always returned.
+
+If a field is not found in the document it will be ignored.
+
+### get fixedFields()
+
+_Since_ `5.8.0`
+
+This is used to determinate witch fields **should always be returned**.
+
+If a field is not found in the document it will be ignored.
 
 ### async formatRows(rows)
 You can use this to format your records before they are returned.

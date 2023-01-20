@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [5.8.0] - 2023-01-20
+### Added
+_ New _parameter_ `fields` to select specific fields to be responded.
+_ New _parameter_ `excludeFields` to select specific fields to be excluded in the response.
+- Now the _getter_ `fieldsToSelect` can be `false` to prevent to use `fields` _parameter_.
+- New _getter_ `fieldsToExclude` to define witch fields must be excluded from the response.
+- New _getter_ `fixedFields` to define witch fields must be responded and can't be excluded.
+
+### Changed
+- Now `fields` _parameter_ will send fields to the query, the model will reduce the response.
+
 ## [5.7.0] - 2022-12-27
 ### Added
 - Getter `fields` to reduce the api response to just the defined fields.
