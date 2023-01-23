@@ -482,6 +482,64 @@ module.exports = class MyApiListData extends ApiListData {
 ```
 </details>
 
+## Reducing responses
+
+_Since_ `5.8.0`
+
+An Api defined with **ApiListData** can be reduced using new parameters `fields` and `excludeFields`.
+
+This parameters will be passed to the **model** for reducing the response on the database-side.
+
+For the following examples we will be using invented products with the information
+
+```json
+[{
+	"id": 1,
+	"code": "t-shirt-red",
+	"name": "Shirt Red",
+	"price": 200.5,
+	"status": "active"
+}, {
+	"id": 2,
+	"code": "t-shirt-blue",
+	"name": "Shirt Blue",
+	"price": 200.8,
+	"status": "active"
+}]
+```
+
+<details>
+	<summary>Example: Reducing response with fields</summary>
+
+When using `fields` we are telling the database the specific fields we wanna receive in the response.
+
+**Important**. When using `fields`, `excludeFields` will be ignored.
+
+```bash
+curl --location -g --request GET 'https://my-catalog.com/api/product?fields[0]=code&fields[1]=name'
+
+// expected output: [{ id: 1, code: 't-shirt-red', name: 'Shirt Red' }, { id: 2, code: 't-shirt-blue', name: 'Shirt Blue' }]
+
+```
+
+</details>
+
+<details>
+	<summary>Example: Reducing response with excludeFields</summary>
+
+When using `excludeFields` we are telling the database the specific fields we **don't** wanna receive in the response.
+
+**Important**. When using `fields`, `excludeFields` will be ignored.
+
+```bash
+curl --location -g --request GET 'https://my-catalog.com/api/product?excludeFields[0]=price'
+
+// expected output: [{ id: 1, code: 't-shirt-red', name: 'Shirt Red', status: 'active' }, { id: 2, code: 't-shirt-blue', name: 'Shirt Blue', status: 'active' }]
+
+```
+
+</details>
+
 ## Request Headers
 
 An ApiListData accepts request _headers_ to modify default behavior.
