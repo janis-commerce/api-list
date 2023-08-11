@@ -548,8 +548,8 @@ An ApiListData accepts request _headers_ to modify default behavior.
 |--|--|--|
 |_x-janis-page_|Configure the page of the list to be consulted|**1**|
 |_x-janis-page-size_|The amount of rows to be returned. (max **100**)|**60**||
-|_x-janis-totals_|The package will calculate total using `getTotals()`. _Since X.X.0_.|**false**||
-|_x-janis-only-totals_|The package will calculate only total (no list items in response) using `getTotals()`. _Since X.X.0_.|**false**||
+|_x-janis-totals_|The package will calculate total using `getTotals()`. _Since 7.0.0_.|**false**||
+|_x-janis-only-totals_|The package will calculate only total (no list items in response) using `getTotals()`. _Since 7.0.0_.|**false**||
 
 > ℹ️ The maximum page size can be modified with `maxPageSize()` _getter_
 
