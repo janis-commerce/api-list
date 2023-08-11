@@ -548,7 +548,8 @@ An ApiListData accepts request _headers_ to modify default behavior.
 |--|--|--|
 |_x-janis-page_|Configure the page of the list to be consulted|**1**|
 |_x-janis-page-size_|The amount of rows to be returned. (max **100**)|**60**||
-|_x-janis-totals_|The package will calculate total using `getTotals()`. _Since 5.6.0_.|**true**||
+|_x-janis-totals_|The package will calculate total using `getTotals()`. _Since X.X.0_.|**false**||
+|_x-janis-only-totals_|The package will calculate only total (no list items in response) using `getTotals()`. _Since X.X.0_.|**false**||
 
 > ℹ️ The maximum page size can be modified with `maxPageSize()` _getter_
 
@@ -562,7 +563,7 @@ An ApiListData will response the following _headers_.
 |_x-janis-page-size_|The page size used in the `get()` command|
 |_x-janis-total_|The total of documents according the filters applied. Calculated with `getTotals()`|
 
-> ℹ️ The total calculation can be avoided using request _header_ _x-janis-totals_ as **false**
+> ℹ️ The total calculation can be obtained using request _header_ _x-janis-totals_ or _header_ _x-janis-only-totals_ as **true**. Using  _header_ _x-janis-only-totals_ will prevent using `get()` command| and no list items will be returned
 
 ## List APIs with parents
 
