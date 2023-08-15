@@ -2088,11 +2088,8 @@ describe('Api List Data', () => {
 
 			it('Should not calculate totals if no data is found', async () => {
 
-				sinon.restore();
-				sinon.stub(MyModel.prototype, 'get')
-					.resolves([]);
-				sinon.stub(MyModel.prototype, 'getTotals')
-					.resolves({ total: 0 });
+				MyModel.prototype.get.resolves([]);
+				MyModel.prototype.getTotals.resolves({ total: 0 });
 
 				const myApiList = getApiInstance(ApiListData, {
 					headers: { 'x-janis-totals': true }
@@ -2104,99 +2101,45 @@ describe('Api List Data', () => {
 				await myApiList.process();
 
 				sinon.assert.notCalled(MyModel.prototype.getTotals);
+
 				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 0 });
-
 			});
 
-			it('Should calculate totals when x-janis-totals header received as true', async () => {
+			[true, 'true', '1'].forEach(value => {
+				it(`Should calculate totals when x-janis-totals header received as ${value} ${typeof value}`, async () => {
 
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-totals': true }
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-totals': value }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.calledOnce(MyModel.prototype.getTotals);
+
+					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
 				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
 			});
 
-			it('Should calculate totals when x-janis-totals header received as true as string', async () => {
+			[false, 'false', '0'].forEach(value => {
+				it(`Should not calculate totals when x-janis-totals header received ${value} ${typeof value}`, async () => {
 
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-totals': 'true' }
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-totals': value }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.notCalled(MyModel.prototype.getTotals);
+
+					assert.deepStrictEqual(myApiList.response.headers, {});
+
 				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
 			});
 
-			it('Should calculate totals when x-janis-totals header received as 1 as string', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-totals': '1' }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
-			});
-
-			it('Should not calculate totals when x-janis-totals header received as false', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-totals': false }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.notCalled(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, {});
-			});
-
-			it('Should not calculate totals when x-janis-totals header received as false as string', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-totals': 'false' }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.notCalled(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, {});
-			});
-
-			it('Should not calculate totals when x-janis-totals header received as 0 as string', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-totals': '0' }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.notCalled(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, {});
-			});
 		});
 
 		describe('Calculate totals only', () => {
@@ -2211,103 +2154,41 @@ describe('Api List Data', () => {
 					.resolves({ total: 1 });
 			});
 
+			[true, 'true', '1'].forEach(value => {
+				it(`Should calculate totals when x-janis-only-totals header received as ${value} ${typeof value}`, async () => {
 
-			it('Should calculate totals when x-janis-only-totals header received as true', async () => {
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-only-totals': value }
+					});
 
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-only-totals': true }
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.calledOnce(MyModel.prototype.getTotals);
+					sinon.assert.notCalled(MyModel.prototype.get);
+
+					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
+					assert.deepStrictEqual(myApiList.response.body, undefined);
 				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
-				assert.deepStrictEqual(myApiList.response.body, undefined);
-				sinon.assert.notCalled(MyModel.prototype.get);
 			});
 
-			it('Should calculate totals when x-janis-totals header received as true as string', async () => {
+			[false, 'false', '0'].forEach(value => {
+				it(`Should not calculate totals when x-janis-only-totals header received as ${value}(${typeof value})`, async () => {
 
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-only-totals': true }
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-only-totals': value }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.notCalled(MyModel.prototype.getTotals);
+					sinon.assert.calledOnce(MyModel.prototype.get);
+
+					assert.deepStrictEqual(myApiList.response.headers, {});
 				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
-				assert.deepStrictEqual(myApiList.response.body, undefined);
-				sinon.assert.notCalled(MyModel.prototype.get);
-			});
-
-			it('Should calculate totals when x-janis-only-totals header received as 1 as string', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-only-totals': '1' }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.calledOnce(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
-				assert.deepStrictEqual(myApiList.response.body, undefined);
-
-				sinon.assert.notCalled(MyModel.prototype.get);
-
-			});
-
-			it('Should not calculate totals when x-janis-only-totals header received as false', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-only-totals': false }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.notCalled(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, {});
-			});
-
-			it('Should not calculate totals when x-janis-only-totals header received as false as string', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-only-totals': 'false' }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.notCalled(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, {});
-			});
-
-			it('Should not calculate totals when x-janis-only-totals header received as 0 as string', async () => {
-
-				const myApiList = getApiInstance(ApiListData, {
-					headers: { 'x-janis-only-totals': '0' }
-				});
-
-				await myApiList.validate();
-
-				await myApiList.process();
-
-				sinon.assert.notCalled(MyModel.prototype.getTotals);
-
-				assert.deepStrictEqual(myApiList.response.headers, {});
 			});
 
 		});
