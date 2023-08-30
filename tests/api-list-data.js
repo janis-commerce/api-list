@@ -1427,7 +1427,7 @@ describe('Api List Data', () => {
 
 			assertGet();
 
-			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals);
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals, undefined);
 		});
 
 		it('Should return a rows array (formatted) and total rows if passed params do find results', async () => {
@@ -1462,7 +1462,7 @@ describe('Api List Data', () => {
 
 			assertGet();
 
-			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals);
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals, undefined);
 		});
 
 		describe('searchFilters', () => {
