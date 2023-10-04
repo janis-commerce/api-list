@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [7.1.0] - 2023-10-04
+### Added
+- New header `x-janis-only-totals` to make request not return list items, only header `x-janis-total`
+
+### Changed
+- `x-janis-total` header default from true to false
+
 ## [7.0.0] - 2023-09-18
 ### Changed
 - Update [@janiscommerce/api](https://www.npmjs.com/package/@janiscommerce/api) to version 8.0.0
