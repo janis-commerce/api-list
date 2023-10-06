@@ -2157,6 +2157,8 @@ describe('Api List Data', () => {
 			[true, 'true', '1'].forEach(value => {
 				it(`Should calculate totals when x-janis-only-totals header received as ${value} ${typeof value}`, async () => {
 
+					sinon.spy(ApiListData.prototype, 'formatRows');
+
 					const myApiList = getApiInstance(ApiListData, {
 						headers: { 'x-janis-only-totals': value }
 					});
@@ -2167,6 +2169,7 @@ describe('Api List Data', () => {
 
 					sinon.assert.calledOnce(MyModel.prototype.getTotals);
 					sinon.assert.notCalled(MyModel.prototype.get);
+					sinon.assert.notCalled(ApiListData.prototype.formatRows);
 
 					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
 					assert.deepStrictEqual(myApiList.response.body, undefined);
