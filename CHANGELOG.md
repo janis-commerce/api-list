@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [7.1.1] - 2023-10-06
+### Fixed
+- Avoided a error when no records are returned
+
 ## [7.1.0] - 2023-10-04
 ### Added
 - New header `x-janis-only-totals` to make request not return list items, only header `x-janis-total`
