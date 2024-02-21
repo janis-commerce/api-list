@@ -21,6 +21,10 @@ const { ApiListData } = require('@janiscommerce/api-list');
 
 module.exports = class MyApiListData extends ApiListData {
 
+	get alwaysCallFormatter() {
+		return true;
+	}
+
 	get fieldsToSelect() {
 		return ['name', 'status'];
 	}
@@ -76,6 +80,9 @@ All of them are optional.
 
 ### get modelName()
 Returns model name. It is intent to be used to change the model's name and it will not get the model name from endpoint
+
+### get alwaysCallFormatter()
+This is used to force calling the `formatRows()` method even if `fields` or `excludeFields` are sent to the API.
 
 ### get fieldsToSelect()
 This is used to determinate which fields should be selected from the DB.
@@ -209,7 +216,7 @@ _Since 3.1.0_
 
 This lib also exports some value mappers (to use as `valueMapper`) so you don't need to implement them yourself.
 
-> :warning: `startOfTheDayMapper` and `endOfTheDayMapper` are now deprecated. See [migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper.md).
+> :warning: Warning `startOfTheDayMapper` and `endOfTheDayMapper` are now deprecated. See [migration guide](docs/deprecations/001-start-and-end-of-day-filter-mapper.md).
 
 <details>
 	<summary>They are explained here with examples:</summary>
@@ -487,6 +494,8 @@ module.exports = class MyApiListData extends ApiListData {
 _Since_ `5.8.0`
 
 An Api defined with **ApiListData** can be reduced using new parameters `fields` and `excludeFields`.
+
+> :warning: **Warning** When a response is reduced, it will not call `formatRows()`, unless the API's `alwaysCallFormatter` getter returns `true`
 
 This parameters will be passed to the **model** for reducing the response on the database-side.
 
