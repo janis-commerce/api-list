@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [8.0.0] - 2024-02-22
+### Added
+- API now has a `alwaysCallFormatter` to enforce calling the `formatRows()` method, even when response is reduced with `fields` or `excludeFields`.
+
+### Changed
+- **BREAKING CHANGE** When the response is reduced with `fields` or `excludeFields`, the `formatRows()` method is not called any more.
+
 ## [7.1.1] - 2023-10-06
 ### Fixed
 - Avoided a error when no records are returned
