@@ -2348,6 +2348,138 @@ describe('Api List Data', () => {
 
 					assertGet({ fields: ['foo'] });
 				});
+
+				it('Should not format the rows when fields are received', async () => {
+
+					MyModel.prototype.get.resolves([{
+						foo: 'bar'
+					}]);
+
+					class MyApiList extends ApiListData {
+						formatRows(rows) {
+							return rows.map(row => ({
+								...row,
+								newField: true
+							}));
+						}
+					}
+
+					const myApiList = getApiInstance(MyApiList, {
+						data: { fields: ['foo'] }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					assert.deepStrictEqual(myApiList.response.body, [{
+						foo: 'bar'
+					}]);
+
+					assertGet({ fields: ['foo'] });
+				});
+
+				it('Should format the rows when alwaysCallFormatter is true, even if fields are received', async () => {
+
+					MyModel.prototype.get.resolves([{
+						foo: 'bar'
+					}]);
+
+					class MyApiList extends ApiListData {
+
+						get alwaysCallFormatter() {
+							return true;
+						}
+
+						formatRows(rows) {
+							return rows.map(row => ({
+								...row,
+								newField: true
+							}));
+						}
+					}
+
+					const myApiList = getApiInstance(MyApiList, {
+						data: { fields: ['foo'] }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					assert.deepStrictEqual(myApiList.response.body, [{
+						foo: 'bar',
+						newField: true
+					}]);
+
+					assertGet({ fields: ['foo'] });
+				});
+
+				it('Should not format the rows when excludeFields are received', async () => {
+
+					MyModel.prototype.get.resolves([{
+						foo: 'bar'
+					}]);
+
+					class MyApiList extends ApiListData {
+						formatRows(rows) {
+							return rows.map(row => ({
+								...row,
+								newField: true
+							}));
+						}
+					}
+
+					const myApiList = getApiInstance(MyApiList, {
+						data: { excludeFields: ['baz'] }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					assert.deepStrictEqual(myApiList.response.body, [{
+						foo: 'bar'
+					}]);
+
+					assertGet({ excludeFields: ['baz'] });
+				});
+
+				it('Should format the rows when alwaysCallFormatter is true, even if excludeFields are received', async () => {
+
+					MyModel.prototype.get.resolves([{
+						foo: 'bar'
+					}]);
+
+					class MyApiList extends ApiListData {
+
+						get alwaysCallFormatter() {
+							return true;
+						}
+
+						formatRows(rows) {
+							return rows.map(row => ({
+								...row,
+								newField: true
+							}));
+						}
+					}
+
+					const myApiList = getApiInstance(MyApiList, {
+						data: { excludeFields: ['baz'] }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					assert.deepStrictEqual(myApiList.response.body, [{
+						foo: 'bar',
+						newField: true
+					}]);
+
+					assertGet({ excludeFields: ['baz'] });
+				});
 			});
 
 			context('When Api has fieldsToSelect defined', () => {
@@ -2407,6 +2539,42 @@ describe('Api List Data', () => {
 					await myApiList.process();
 
 					assertGet({ fields: ['bar'] });
+				});
+
+				it('Should format the rows when no fields or excludeFields are received as params', async () => {
+
+					MyModel.prototype.get.resolves([{
+						foo: 'bar'
+					}]);
+
+					class MyApiList extends ApiListData {
+
+						get fieldsToSelect() {
+							return ['foo'];
+						}
+
+						formatRows(rows) {
+							return rows.map(row => ({
+								...row,
+								newField: true
+							}));
+						}
+					}
+
+					const myApiList = getApiInstance(MyApiList, {
+						data: {}
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					assert.deepStrictEqual(myApiList.response.body, [{
+						foo: 'bar',
+						newField: true
+					}]);
+
+					assertGet({ fields: ['foo'] });
 				});
 			});
 
@@ -2520,6 +2688,42 @@ describe('Api List Data', () => {
 					await myApiList.process();
 
 					assertGet({ excludeFields: ['foo'] });
+				});
+
+				it('Should format the rows when no fields or excludeFields are received as params', async () => {
+
+					MyModel.prototype.get.resolves([{
+						foo: 'bar'
+					}]);
+
+					class MyApiList extends ApiListData {
+
+						get fieldsToExclude() {
+							return ['baz'];
+						}
+
+						formatRows(rows) {
+							return rows.map(row => ({
+								...row,
+								newField: true
+							}));
+						}
+					}
+
+					const myApiList = getApiInstance(MyApiList, {
+						data: {}
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					assert.deepStrictEqual(myApiList.response.body, [{
+						foo: 'bar',
+						newField: true
+					}]);
+
+					assertGet({ excludeFields: ['baz'] });
 				});
 			});
 		});
