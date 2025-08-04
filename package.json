@@ -22,9 +22,9 @@
   "homepage": "https://github.com/janis-commerce/api-list#readme",
   "devDependencies": {
     "@janiscommerce/model": "^6.8.2",
-    "eslint": "^8.38.0",
-    "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.27.5",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.3",
     "mocha": "^10.2.0",
     "mock-require": "^3.0.3",

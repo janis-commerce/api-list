@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file */
+
 'use strict';
 
 const assert = require('assert');
@@ -1402,7 +1404,6 @@ describe('Api List Data', () => {
 
 			assert.deepStrictEqual(myApiList.response.body, []);
 
-
 			assertGet();
 		});
 
@@ -2094,7 +2095,6 @@ describe('Api List Data', () => {
 				const myApiList = getApiInstance(ApiListData, {
 					headers: { 'x-janis-totals': true }
 				});
-
 
 				await myApiList.validate();
 
