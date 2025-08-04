@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [8.1.1] - 2025-08-04
+### Fixed
+- Totals are now properly calculated when the found results are less than the limit in the first page.
+
 ## [8.1.0] - 2025-08-04
 ### Added
 - Headers `x-janis-totals` and `x-janis-only-totals` now accept `max=X` format to set the limit for the total number of records.
