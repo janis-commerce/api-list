@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [8.1.0] - 2025-08-04
+### Added
+- Headers `x-janis-totals` and `x-janis-only-totals` now accept `max=X` format to set the limit for the total number of records.
+
+### Fixed
+- Totals are now properly calculated when the found results are less than the limit but not in the first page.
+
 ## [8.0.0] - 2024-02-22
 ### Added
 - API now has a `alwaysCallFormatter` to enforce calling the `formatRows()` method, even when response is reduced with `fields` or `excludeFields`.
