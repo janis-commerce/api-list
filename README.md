@@ -557,8 +557,26 @@ An ApiListData accepts request _headers_ to modify default behavior.
 |--|--|--|
 |_x-janis-page_|Configure the page of the list to be consulted|**1**|
 |_x-janis-page-size_|The amount of rows to be returned. (max **100**)|**60**||
-|_x-janis-totals_|The package will calculate total using `getTotals()`. _Since 7.0.0_.|**false**||
-|_x-janis-only-totals_|The package will calculate only total (no list items in response) using `getTotals()`. _Since 7.0.0_.|**false**||
+|_x-janis-totals_|The package will calculate total using `getTotals()`. Supports boolean values (`true`/`false`) or limit format (`max=X`) for limited counting. _Since 7.0.0_.|**false**||
+|_x-janis-only-totals_|The package will calculate only total (no list items in response) using `getTotals()`. Supports boolean values (`true`/`false`) or limit format (`max=X`) for limited counting. _Since 7.0.0_.|**false**||
+
+### Totals Headers Examples
+
+Both `x-janis-totals` and `x-janis-only-totals` headers support two formats:
+
+**Boolean format (backward compatible):**
+- `x-janis-totals: true` - Calculate total without limit (returns data + total)
+- `x-janis-totals: false` - Don't calculate totals
+- `x-janis-only-totals: true` - Calculate total without limit (returns only total)
+- `x-janis-only-totals: false` - Don't calculate totals
+
+**Limited counting format:**
+- `x-janis-totals: max=6000` - Calculate total up to 6000 records (returns data + total)
+- `x-janis-totals: max=100` - Calculate total up to 100 records (returns data + total)
+- `x-janis-only-totals: max=6000` - Calculate total up to 6000 records (returns only total)
+- `x-janis-only-totals: max=100` - Calculate total up to 100 records (returns only total)
+
+When using the `max=X` format, the `getTotals()` method will be called with a `{ limit: X }` option to enable efficient counting with database-level limits.
 
 > ℹ️ The maximum page size can be modified with `maxPageSize()` _getter_
 

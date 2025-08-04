@@ -1427,7 +1427,7 @@ describe('Api List Data', () => {
 
 			assertGet();
 
-			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals, undefined);
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals, {}, undefined);
 		});
 
 		it('Should return a rows array (formatted) and total rows if passed params do find results', async () => {
@@ -1462,7 +1462,7 @@ describe('Api List Data', () => {
 
 			assertGet();
 
-			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals, undefined);
+			sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals, {}, undefined);
 		});
 
 		describe('searchFilters', () => {
@@ -2105,7 +2105,7 @@ describe('Api List Data', () => {
 				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 0 });
 			});
 
-			[true, 'true', '1'].forEach(value => {
+			[true, 'true', '1', 'max=0'].forEach(value => {
 				it(`Should calculate totals when x-janis-totals header received as ${value} ${typeof value}`, async () => {
 
 					const myApiList = getApiInstance(ApiListData, {
@@ -2116,7 +2116,10 @@ describe('Api List Data', () => {
 
 					await myApiList.process();
 
-					sinon.assert.calledOnce(MyModel.prototype.getTotals);
+					sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals,
+						{}, // filters
+						undefined // no options for backward compatibility
+					);
 
 					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
 				});
@@ -2140,6 +2143,50 @@ describe('Api List Data', () => {
 				});
 			});
 
+			[100, 5000, 1].forEach(expectedLimit => {
+				it(`Should calculate totals with limit when x-janis-totals header received as max=${expectedLimit}`, async () => {
+
+					MyModel.prototype.get.resolves(new Array(expectedLimit).fill()
+						.map(() => ({ some: 'data' })));
+
+					MyModel.prototype.getTotals.resolves({ total: expectedLimit });
+
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-totals': `max=${expectedLimit}` }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals,
+						{}, // filters
+						{ limit: expectedLimit } // options with limit
+					);
+
+					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': expectedLimit });
+				});
+			});
+
+			it('Should not calculate totals when the found results are less than the limit in the first page', async () => {
+
+				MyModel.prototype.get.resolves([{ some: 'data' }]);
+
+				MyModel.prototype.getTotals.resolves({ total: 10 });
+
+				const myApiList = getApiInstance(ApiListData, {
+					headers: { 'x-janis-totals': 'max=10' }
+				});
+
+				await myApiList.validate();
+
+				await myApiList.process();
+
+				sinon.assert.notCalled(MyModel.prototype.getTotals);
+
+				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
+			});
+
 		});
 
 		describe('Calculate totals only', () => {
@@ -2148,7 +2195,6 @@ describe('Api List Data', () => {
 
 				sinon.stub(MyModel.prototype, 'get')
 					.resolves([{ some: 'data' }]);
-
 
 				sinon.stub(MyModel.prototype, 'getTotals')
 					.resolves({ total: 1 });
@@ -2167,7 +2213,10 @@ describe('Api List Data', () => {
 
 					await myApiList.process();
 
-					sinon.assert.calledOnce(MyModel.prototype.getTotals);
+					sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals,
+						{}, // filters
+						undefined // no options for backward compatibility
+					);
 					sinon.assert.notCalled(MyModel.prototype.get);
 					sinon.assert.notCalled(ApiListData.prototype.formatRows);
 
@@ -2191,6 +2240,31 @@ describe('Api List Data', () => {
 					sinon.assert.calledOnce(MyModel.prototype.get);
 
 					assert.deepStrictEqual(myApiList.response.headers, {});
+				});
+			});
+
+			[100, 5000, 1].forEach(expectedLimit => {
+				it(`Should calculate totals with limit when x-janis-only-totals header received as max=${expectedLimit}`, async () => {
+
+					sinon.spy(ApiListData.prototype, 'formatRows');
+
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-only-totals': `max=${expectedLimit}` }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals,
+						{}, // filters
+						{ limit: expectedLimit } // options with limit
+					);
+					sinon.assert.notCalled(MyModel.prototype.get);
+					sinon.assert.notCalled(ApiListData.prototype.formatRows);
+
+					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 1 });
+					assert.deepStrictEqual(myApiList.response.body, undefined);
 				});
 			});
 
