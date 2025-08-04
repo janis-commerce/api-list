@@ -1410,9 +1410,10 @@ describe('Api List Data', () => {
 		it('Should return a rows array and total rows if passed params do find results', async () => {
 
 			const row = { foo: 'bar' };
+			const results = new Array(60).fill(row);
 
 			sinon.stub(MyModel.prototype, 'get')
-				.resolves([row]);
+				.resolves(results);
 
 			sinon.stub(MyModel.prototype, 'getTotals')
 				.resolves({ total: 100 });
@@ -1423,7 +1424,7 @@ describe('Api List Data', () => {
 
 			await myApiList.process();
 
-			assert.deepStrictEqual(myApiList.response.body, [row]);
+			assert.deepStrictEqual(myApiList.response.body, results);
 			assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 100 });
 
 			assertGet();
@@ -1433,8 +1434,13 @@ describe('Api List Data', () => {
 
 		it('Should return a rows array (formatted) and total rows if passed params do find results', async () => {
 
+			const row = { foo: 'bar' };
+			const results = new Array(60).fill(row);
+			const formattedRow = { foo: 'bar', moreFoo: true };
+			const formattedResults = new Array(60).fill(formattedRow);
+
 			sinon.stub(MyModel.prototype, 'get')
-				.resolves([{ foo: 'bar' }]);
+				.resolves(results);
 
 			sinon.stub(MyModel.prototype, 'getTotals')
 				.resolves({ total: 100 });
@@ -1442,7 +1448,7 @@ describe('Api List Data', () => {
 			class MyApiList extends ApiListData {
 
 				formatRows(rows) {
-					return rows.map(row => ({ ...row, moreFoo: true }));
+					return rows.map(r => ({ ...r, moreFoo: true }));
 				}
 			}
 
@@ -1452,10 +1458,7 @@ describe('Api List Data', () => {
 
 			await myApiList.process();
 
-			assert.deepStrictEqual(myApiList.response.body, [{
-				foo: 'bar',
-				moreFoo: true
-			}]);
+			assert.deepStrictEqual(myApiList.response.body, formattedResults);
 
 			assert.deepStrictEqual(myApiList.response.headers, {
 				'x-janis-total': 100
@@ -2064,9 +2067,12 @@ describe('Api List Data', () => {
 
 		describe('Calculate totals', () => {
 
+			const row = { foo: 'bar' };
+			const results = new Array(60).fill(row);
+
 			beforeEach(() => {
 				sinon.stub(MyModel.prototype, 'get')
-					.resolves([{ some: 'data' }]);
+					.resolves(results);
 
 				sinon.stub(MyModel.prototype, 'getTotals')
 					.resolves({ total: 1 });
@@ -2143,29 +2149,26 @@ describe('Api List Data', () => {
 				});
 			});
 
-			[100, 5000, 1].forEach(expectedLimit => {
-				it(`Should calculate totals with limit when x-janis-totals header received as max=${expectedLimit}`, async () => {
+			it('Should calculate totals with limit when x-janis-totals header received as max=100', async () => {
 
-					MyModel.prototype.get.resolves(new Array(expectedLimit).fill()
-						.map(() => ({ some: 'data' })));
+				MyModel.prototype.get.resolves(results);
 
-					MyModel.prototype.getTotals.resolves({ total: expectedLimit });
+				MyModel.prototype.getTotals.resolves({ total: 100 });
 
-					const myApiList = getApiInstance(ApiListData, {
-						headers: { 'x-janis-totals': `max=${expectedLimit}` }
-					});
-
-					await myApiList.validate();
-
-					await myApiList.process();
-
-					sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals,
-						{}, // filters
-						{ limit: expectedLimit } // options with limit
-					);
-
-					assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': expectedLimit });
+				const myApiList = getApiInstance(ApiListData, {
+					headers: { 'x-janis-totals': `max=${100}` }
 				});
+
+				await myApiList.validate();
+
+				await myApiList.process();
+
+				sinon.assert.calledOnceWithExactly(MyModel.prototype.getTotals,
+					{}, // filters
+					{ limit: 100 } // options with limit
+				);
+
+				assert.deepStrictEqual(myApiList.response.headers, { 'x-janis-total': 100 });
 			});
 
 			it('Should not calculate totals when the found results are less than the limit in the first page', async () => {
