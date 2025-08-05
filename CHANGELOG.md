@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [8.1.2] - 2025-08-05
+### Fixed
+- Totals are now returned when the found results are less than the limit in the first page.
+
 ## [8.1.1] - 2025-08-04
 ### Fixed
 - Totals are now properly calculated when the found results are less than the limit in the first page.
