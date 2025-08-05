@@ -41,7 +41,10 @@
     "test": "tests"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.859.0",
+    "@aws-sdk/lib-storage": "^3.859.0",
     "@janiscommerce/api": "^8.0.0",
+    "@janiscommerce/lambda": "^6.3.0",
     "@janiscommerce/superstruct": "^1.2.1"
   }
 }
