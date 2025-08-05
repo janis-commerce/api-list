@@ -2229,10 +2229,11 @@ describe('Api List Data', () => {
 			});
 
 			[false, 'false', '0'].forEach(value => {
-				it(`Should not calculate totals when x-janis-only-totals header received as ${value}(${typeof value})`, async () => {
+				it(`Should not calculate totals when x-janis-only-totals header received as ${value} (${typeof value})`, async () => {
 
 					const myApiList = getApiInstance(ApiListData, {
-						headers: { 'x-janis-only-totals': value }
+						// Add page-size to avoid returning totals due to incomplete first page
+						headers: { 'x-janis-only-totals': value, 'x-janis-page-size': 1 }
 					});
 
 					await myApiList.validate();
