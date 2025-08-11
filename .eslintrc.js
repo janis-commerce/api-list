@@ -20,7 +20,7 @@ module.exports = {
 
 	parserOptions: {
 		sourceType: 'script',
-		ecmaVersion: 2020
+		ecmaVersion: 2022
 	},
 
 	rules: {
@@ -34,6 +34,7 @@ module.exports = {
 		'consistent-return': 0,
 		'prefer-template': 0,
 		'import/no-unresolved': 0,
+		'import/extensions': 0,
 		'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/tests/**/*.js'] }],
 
 		'no-bitwise': 0,
