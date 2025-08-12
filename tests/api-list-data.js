@@ -124,7 +124,8 @@ describe('Api List Data', () => {
 				'x-janis-page': 1,
 				'x-janis-page-size': 60,
 				'x-janis-totals': false,
-				'x-janis-only-totals': false
+				'x-janis-only-totals': false,
+				'x-janis-only-params': false
 			});
 		});
 
@@ -147,7 +148,8 @@ describe('Api List Data', () => {
 				'x-janis-page': 1,
 				'x-janis-page-size': 60,
 				'x-janis-totals': false,
-				'x-janis-only-totals': false
+				'x-janis-only-totals': false,
+				'x-janis-only-params': false
 			});
 		});
 
@@ -2271,6 +2273,89 @@ describe('Api List Data', () => {
 				});
 			});
 
+		});
+
+		describe('Return only params', () => {
+
+			beforeEach(() => {
+
+				sinon.spy(ApiListData.prototype, 'formatRows');
+
+				sinon.stub(MyModel.prototype, 'get')
+					.resolves([{ some: 'data' }]);
+
+				sinon.stub(MyModel.prototype, 'getTotals')
+					.resolves({ total: 1 });
+			});
+
+			const validSession = {
+				getSessionInstance: Class => new Class(),
+				isService: true
+			};
+
+			[true, 'true', '1'].forEach(value => {
+				it(`Should return only params when is Service and x-janis-only-params header received as ${value} ${typeof value}`, async () => {
+
+					const myApiList = getApiInstance(ApiListData, {
+						session: validSession,
+						headers: { 'x-janis-only-params': value }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.notCalled(MyModel.prototype.getTotals);
+					sinon.assert.notCalled(MyModel.prototype.get);
+					sinon.assert.notCalled(ApiListData.prototype.formatRows);
+
+					assert.deepStrictEqual(myApiList.response.headers, {});
+					assert.deepStrictEqual(myApiList.response.body, {
+						params: {
+							page: 1,
+							limit: 60
+						}
+					});
+				});
+
+				it(`Should not return params when is not Service and x-janis-only-params header received as ${value} ${typeof value}`, async () => {
+
+					const myApiList = getApiInstance(ApiListData, {
+						session: { ...validSession, isService: false },
+						headers: { 'x-janis-only-params': value }
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.notCalled(MyModel.prototype.getTotals);
+					sinon.assert.calledOnce(MyModel.prototype.get);
+					sinon.assert.calledOnce(ApiListData.prototype.formatRows);
+
+					assert.deepStrictEqual(myApiList.response.headers, {});
+					assert.deepStrictEqual(myApiList.response.body, [{ some: 'data' }]);
+				});
+			});
+
+			[false, 'false', '0'].forEach(value => {
+				it(`Should not return only params when is not Service and x-janis-only-params header received as ${value}(${typeof value})`, async () => {
+
+					const myApiList = getApiInstance(ApiListData, {
+						headers: { 'x-janis-only-params': value },
+						session: validSession
+					});
+
+					await myApiList.validate();
+
+					await myApiList.process();
+
+					sinon.assert.notCalled(MyModel.prototype.getTotals);
+					sinon.assert.calledOnce(MyModel.prototype.get);
+
+					assert.deepStrictEqual(myApiList.response.headers, {});
+				});
+			});
 		});
 
 		describe('Reducing response with fields and excludeFields', () => {
