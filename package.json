@@ -1,6 +1,6 @@
 {
   "name": "@janiscommerce/api-list",
-  "version": "8.2.0-export-beta.7",
+  "version": "8.2.0-export-beta.8",
   "description": "A package to handle Janis List APIs",
   "main": "lib/index.js",
   "scripts": {
