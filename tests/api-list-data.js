@@ -2314,7 +2314,8 @@ describe('Api List Data', () => {
 						params: {
 							page: 1,
 							limit: 60
-						}
+						},
+						noResults: false
 					});
 				});
 
