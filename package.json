@@ -49,6 +49,7 @@
     "@janiscommerce/lambda": "^6.3.0",
     "@janiscommerce/microservice-call": "^5.1.1",
     "@janiscommerce/sqs-consumer": "^1.1.0",
-    "@janiscommerce/superstruct": "^1.2.1"
+    "@janiscommerce/superstruct": "^1.2.1",
+    "bson": "^6.10.4"
   }
 }

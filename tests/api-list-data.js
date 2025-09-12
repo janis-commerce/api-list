@@ -4,6 +4,7 @@
 
 const assert = require('assert');
 const path = require('path');
+const { EJSON } = require('bson');
 
 const sinon = require('sinon');
 const mockRequire = require('mock-require');
@@ -2311,10 +2312,10 @@ describe('Api List Data', () => {
 
 					assert.deepStrictEqual(myApiList.response.headers, {});
 					assert.deepStrictEqual(myApiList.response.body, {
-						params: {
+						params: EJSON.stringify({
 							page: 1,
 							limit: 60
-						},
+						}),
 						noResults: false
 					});
 				});
