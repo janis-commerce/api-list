@@ -10,7 +10,7 @@
     "coverage": "nyc npm test",
     "lint": "eslint lib/ tests/",
     "prepare": "husky install",
-    "build-types": "tsc lib/index.js --declaration --allowJs --emitDeclarationOnly --outDir types",
+    "build-types": "tsc lib/index.js --declaration --allowJs --emitDeclarationOnly --outDir types --skipLibCheck",
     "postpublish": "./.postpublish.sh"
   },
   "repository": {
@@ -22,10 +22,12 @@
   "homepage": "https://github.com/janis-commerce/api-list#readme",
   "devDependencies": {
     "@janiscommerce/model": "^6.8.2",
+    "aws-sdk-client-mock": "^4.1.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.32.0",
     "husky": "^8.0.3",
+    "lllog": "^1.1.2",
     "mocha": "^10.2.0",
     "mock-require": "^3.0.3",
     "nyc": "^15.1.0",
@@ -41,7 +43,15 @@
     "test": "tests"
   },
   "dependencies": {
-    "@janiscommerce/api": "^8.0.0",
-    "@janiscommerce/superstruct": "^1.2.1"
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/client-sqs": "^3.864.0",
+    "@aws-sdk/client-sts": "^3.864.0",
+    "@aws-sdk/lib-storage": "^3.864.0",
+    "@janiscommerce/api": "^8.0.3",
+    "@janiscommerce/lambda": "^6.3.0",
+    "@janiscommerce/microservice-call": "^5.1.1",
+    "@janiscommerce/sqs-consumer": "^1.1.0",
+    "@janiscommerce/superstruct": "^1.2.1",
+    "bson": "^6.10.4"
   }
 }

@@ -2,6 +2,9 @@
   "include": [
     "lib/"
   ],
+  "exclude": [
+    "lib/export/export-serverless-helper-hooks.js"
+  ],
   "extension": [
     ".js"
   ],

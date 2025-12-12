@@ -12,6 +12,14 @@ A package to handle Janis List APIs
 npm install @janiscommerce/api-list
 ```
 
+> ℹ️ Starting from version 9.0.0, this package includes export functionality using SQS consumers. See the [Export Feature](#export-feature) section for details.
+
+> :warning: **Breaking Changes in v9.0.0**
+>
+> Starting from version 9.0.0, entity exports are now handled through **SQS consumers** instead of direct API calls. This requires additional configuration in your service's `serverless.yml` file to set up the necessary consumers and infrastructure.
+>
+> If you need to implement exports for your entities, please refer to the [Export Feature](#export-feature) section below and follow the [migration guide](https://janiscommerce.atlassian.net/wiki/spaces/JV2/pages/3757244423/Batch+New+Export) for detailed setup instructions.
+
 ## Usage
 
 ```js
@@ -352,6 +360,8 @@ If you return a falsy value it will not override them. Otherwise, the return val
 
 You can use this method, for example, to build complex filters or to ensure that a Date range filter is always being applied.
 
+_Since 9.0.0_, you can also set `this.noResults = true` to skip the `get()` call to the model and the totals calculation. This is useful when you know in advance that no results will be returned.
+
 <details>
 	<summary>Example using formatFilters()</summary>
 
@@ -376,6 +386,56 @@ module.exports = class MyApiListData extends ApiListData {
 		}
 
 		// In this case it will not override the filters
+	}
+};
+```
+</details>
+
+<details>
+	<summary>Example using noResults in formatFilters()</summary>
+
+```js
+'use strict';
+
+const {
+	ApiListData
+} = require('@janiscommerce/api-list');
+
+const ProductModel = require('../models/product');
+
+module.exports = class StockApiListData extends ApiListData {
+
+	get availableFilters() {
+		return [
+			'skuId',
+			'productId'
+		];
+	}
+
+	async formatFilters(filters) {
+
+		// If productId filter is received, we need to get the skus for that product
+		// and then filter by skuId
+		if(filters.productId) {
+
+			const productModel = new ProductModel();
+			const skus = await productModel.get({ filters: { id: filters.productId } });
+
+			// If no skus found for the product, we can skip the get() call
+			if(!skus.length) {
+				this.noResults = true;
+				return filters;
+			}
+
+			// Replace productId filter with skuId filter
+			return {
+				...filters,
+				skuId: skus.map(sku => sku.id),
+				productId: undefined
+			};
+		}
+
+		return filters;
 	}
 };
 ```
@@ -433,6 +493,8 @@ This is used to programatically alter the sortables. It will be executed after p
 If you return a falsy value it will not override them. Otherwise, the return value will be used as sortables.
 
 You can use this method, for example, to build complex sorting.
+
+_Since 9.0.0_, you can also set `this.noResults = true` to skip the `get()` call to the model and the totals calculation. This is useful when you know in advance that no results will be returned.
 
 <details>
 	<summary>Example using formatSortables()</summary>
@@ -601,3 +663,164 @@ If you have for example, a list API for a sub-entity of one specific record, the
 For example, the following endpoint: `/api/parent-entity/1/sub-entity`, will be a list of the sub-entity, and `parentEntity: '1'` will be set as a filter.
 
 It could be thought as if it's equivalent to the following request: `/api/sub-entity?filters[parentEntity]=1`
+
+## Export Feature
+
+_Since_ `9.0.0`
+
+This package now supports exporting entities through **SQS consumers** instead of direct API calls. The export process is orchestrated by the Batch service, which sends messages to SQS queues that are processed by consumers in your service.
+
+For complete documentation on the export feature, including architecture details and advanced configuration, please refer to the [Batch New Export documentation](https://janiscommerce.atlassian.net/wiki/spaces/JV2/pages/3757244423/Batch+New+Export).
+
+### Exported Components
+
+The package exports three main components for implementing exports:
+
+- **`ExportConsumer`**: Main consumer that processes export requests. It reads messages from SQS, queries data using your ApiList and Model, and uploads the results to S3 in compressed NDJSON format.
+- **`ExportDLQConsumer`**: Consumer that handles messages from the Dead Letter Queue (DLQ) when exports fail after retries. It forwards error information to an error queue.
+- **`exportServerlessHelperHooks`**: Serverless Framework hooks that automatically configure the necessary infrastructure (SQS queues, DLQ, SNS subscriptions, Lambda functions, IAM permissions).
+
+### Required Configuration
+
+To enable exports in your service, you need to complete the following steps:
+
+#### Step 1: Add Hooks to serverless.yml
+
+Add the export hooks to your `serverless.js` configuration:
+
+```js
+'use strict';
+
+const { SQSHelper } = require('sls-helper-plugin-janis'); // eslint-disable-line
+const { exportServerlessHelperHooks } = require('@janiscommerce/api-list');
+
+module.exports = helper({
+	hooks: [
+		// service hooks
+		...exportServerlessHelperHooks(SQSHelper)
+	]
+});
+```
+
+This will automatically configure:
+- SQS queue for export requests
+- Dead Letter Queue (DLQ) for failed exports
+- SNS topic subscription (`exportRequested` from Batch service)
+- Lambda functions for both consumers
+- Required IAM permissions (including STS AssumeRole for `BATCH_EXPORT_ROLE_ARN`)
+
+#### Step 2: Create Consumer Files
+
+Create the consumer files in your service's `event-listeners` directory:
+
+**File: `src/sqs-consumer/export/export-consumer.js`**
+
+```js
+'use strict';
+
+const { ExportConsumer } = require('@janiscommerce/api-list');
+const { SQSHandler } = require('@janiscommerce/sqs-consumer');
+
+module.exports.handler = event => SQSHandler.handle(ExportConsumer, event);
+```
+
+**File: `src/sqs-consumer/export/export-dlq-consumer.js`**
+
+```js
+'use strict';
+
+const { ExportDLQConsumer } = require('@janiscommerce/api-list');
+const { SQSHandler } = require('@janiscommerce/sqs-consumer');
+
+module.exports.handler = event => SQSHandler.handle(ExportDLQConsumer, event);
+```
+
+### Advanced Configuration
+
+You can customize the export behavior by extending the `ExportConsumer` class and overriding its getters:
+
+#### get pageSize()
+
+Controls how many records are fetched per page from the database.
+
+- **Default**: `10000`
+- **Maximum**: `25000`
+
+```js
+'use strict';
+
+const { ExportConsumer } = require('@janiscommerce/api-list');
+const { SQSHandler } = require('@janiscommerce/sqs-consumer');
+
+class MyExportConsumer extends ExportConsumer {
+	get pageSize() {
+		return 5000;
+	}
+}
+
+module.exports.handler = event => SQSHandler.handle(MyExportConsumer, event);
+```
+
+#### get rowsPerFile()
+
+Controls how many records are included in each exported file before creating a new file.
+
+- **Default**: `250000`
+- **Maximum**: `250000`
+
+```js
+'use strict';
+
+const { ExportConsumer } = require('@janiscommerce/api-list');
+const { SQSHandler } = require('@janiscommerce/sqs-consumer');
+
+class MyExportConsumer extends ExportConsumer {
+	get rowsPerFile() {
+		return 100000;
+	}
+}
+
+module.exports.handler = event => SQSHandler.handle(MyExportConsumer, event);
+```
+
+#### get pageSizeByEntity()
+
+Allows you to configure different page sizes for different entities. This is useful when some entities have larger documents or different performance characteristics.
+
+```js
+'use strict';
+
+const { ExportConsumer } = require('@janiscommerce/api-list');
+const { SQSHandler } = require('@janiscommerce/sqs-consumer');
+
+class MyExportConsumer extends ExportConsumer {
+	get pageSizeByEntity() {
+		return {
+			product: 15000,
+			order: 8000,
+			shipping: 5000
+		};
+	}
+}
+
+module.exports.handler = event => SQSHandler.handle(MyExportConsumer, event);
+```
+
+### Export Features
+
+The export system provides the following features:
+
+- **Multi-part file generation**: Large exports are automatically split into multiple files when they exceed the `rowsPerFile` limit. Each file is uploaded separately and progress messages are sent for each part.
+- **Compressed NDJSON format**: Files are generated in `.ndjson.gz` format (newline-delimited JSON compressed with gzip) for efficient storage and transfer.
+- **formatRows() support**: If your `ApiListData` class implements `formatRows()` and the export request includes `shouldFormatRows: true`, the formatting will be applied to each row before export. **Note that dependencies do not format the rows**.
+- **Error handling**: Automatic retries (maxReceiveCount: 2) and DLQ processing for failed exports. The `ExportDLQConsumer` handles messages that fail after all retries.
+- **S3 upload**: Files are automatically uploaded to the configured S3 bucket with unique filenames.
+- **Progress messages**: SQS messages are sent to the result queue for each completed part, including metadata such as part number, row count, and file location.
+
+The consumer automatically:
+1. Loads the appropriate `ApiListData` class from `api/[parentEntity]/[entity]/list.js`
+2. Loads the corresponding Model from `models/[entity].js` (or uses `modelName` from ApiList if defined)
+3. Processes the export using pagination with the configured `pageSize`
+4. Applies `formatRows()` if requested
+5. Uploads files to S3 as they reach the `rowsPerFile` limit
+6. Sends progress messages for each completed part
