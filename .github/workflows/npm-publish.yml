@@ -28,12 +28,13 @@ jobs:
       - name: Build types
         run: npm run build-types
       - name: Publish to NPM
-        run: |
-          TAG=$(echo "${GITHUB_REF_NAME}" | grep -oP '(?<=-)[^.]+')
-          if [ -z "$TAG" ]; then
-            TAG="latest"
-          fi
-          npm publish --tag "$TAG" --access public
+        run: npm publish --access public
+        #run: |
+        #  TAG=$(echo "${GITHUB_REF_NAME}" | grep -oP '(?<=-)[^.]+')
+        #  if [ -z "$TAG" ]; then
+        #    TAG="latest"
+        #  fi
+        #  npm publish --tag "$TAG" --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
           SLACK_WEBHOOK: ${{secrets.slack_webhook}}
