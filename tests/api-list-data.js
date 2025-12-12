@@ -1880,6 +1880,45 @@ describe('Api List Data', () => {
 
 				assertGet();
 			});
+
+			it('Should return no results when formatFilters decided', async () => {
+
+				class MyApiList extends ApiListData {
+
+					get availableFilters() {
+						return [
+							'otherEntityFilter'
+						];
+					}
+
+					async formatFilters(filters) {
+
+						if(filters.otherEntityFilter) {
+							// other model get() call to check if main get() is necessary
+							this.noResults = true;
+							return filters;
+						}
+
+						return filters;
+					}
+				}
+
+				const myApiList = getApiInstance(MyApiList, {
+					data: {
+						filters: {
+							otherEntityFilter: '693c15376aa8fae93dd1f38f'
+						}
+					}
+				});
+
+				await myApiList.validate();
+
+				await myApiList.process();
+
+				sinon.assert.notCalled(MyModel.prototype.get);
+
+				assert.deepStrictEqual(myApiList.response.body, []);
+			});
 		});
 
 		it('Should not send empty filters', async () => {

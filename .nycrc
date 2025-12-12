@@ -3,7 +3,7 @@
     "lib/"
   ],
   "exclude": [
-    "lib/export/*"
+    "lib/export/export-serverless-helper-hooks.js"
   ],
   "extension": [
     ".js"
