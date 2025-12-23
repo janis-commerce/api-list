@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [9.0.1] - 2025-12-23
+### Changed
+- Increased `ExportConsumer` memory size to 2GB and maximum concurrency to 5.
+
 ## [9.0.0] - 2025-12-12
 ### Added
 - New property `noResults` to skip the `get()` call to the model and the totals calculation. This is useful when you know in advance that no results will be returned.
 - `ExportConsumer` class to export data to S3 in chunks through Janis Batch Service.
 - `x-janis-only-params` header to return only the parameters used to make the request.
+- Now the ApiList instance will have the boolean `isExport` set to `true` so each service can apply specific logic in `formatFilters()`, `formatSortables()` and/or `formatRows()`.
 
 ## [8.1.2] - 2025-08-05
 ### Fixed
