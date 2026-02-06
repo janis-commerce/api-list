@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [9.1.0] - 2026-02-06
+### Added
+- New property `options` to pass options to the exportServerlessHelperHooks function.
+- New property `options.mainQueueProperties` to customize the main queue properties.
+- New property `options.consumerProperties` to customize the consumer properties.
+
 ## [9.0.1] - 2025-12-23
 ### Changed
 - Increased `ExportConsumer` memory size to 2GB and maximum concurrency to 5.

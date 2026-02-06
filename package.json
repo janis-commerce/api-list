@@ -21,7 +21,7 @@
   "license": "ISC",
   "homepage": "https://github.com/janis-commerce/api-list#readme",
   "devDependencies": {
-    "@janiscommerce/model": "^6.8.2",
+    "@janiscommerce/model": "^8.12.0",
     "aws-sdk-client-mock": "^4.1.0",
     "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -47,11 +47,11 @@
     "@aws-sdk/client-sqs": "^3.864.0",
     "@aws-sdk/client-sts": "^3.864.0",
     "@aws-sdk/lib-storage": "^3.864.0",
-    "@janiscommerce/api": "^8.0.3",
+    "@janiscommerce/api": "^8.1.0",
     "@janiscommerce/lambda": "^6.3.0",
     "@janiscommerce/microservice-call": "^5.1.1",
     "@janiscommerce/sqs-consumer": "^1.1.0",
-    "@janiscommerce/superstruct": "^1.2.1",
+    "@janiscommerce/superstruct": "^1.2.2",
     "bson": "^6.10.4"
   }
 }
