@@ -6,11 +6,11 @@
   "scripts": {
     "test": "mocha --exit -R nyan --require tests/bootstrap.js --recursive tests/ --no-deprecation",
     "watch-test": "export TEST_ENV=true; mocha --exit -R nyan -w --recursive tests/ --no-deprecation",
-    "test-ci": "nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive tests/ --no-deprecation",
     "coverage": "nyc npm test",
     "lint": "eslint lib/ tests/",
     "prepare": "husky install",
-    "build-types": "tsc lib/index.js --declaration --allowJs --emitDeclarationOnly --outDir types --skipLibCheck"
+    "build-types": "tsc lib/index.js --declaration --allowJs --emitDeclarationOnly --outDir types --skipLibCheck",
+    "coverage-ci": "nyc --reporter=lcov --reporter=text-summary mocha --exit --recursive tests/ --no-deprecation"
   },
   "repository": {
     "type": "git",
@@ -52,5 +52,8 @@
     "@janiscommerce/sqs-consumer": "^1.1.0",
     "@janiscommerce/superstruct": "^1.2.2",
     "bson": "^6.10.4"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
