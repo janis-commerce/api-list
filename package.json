@@ -53,5 +53,8 @@
     "@janiscommerce/sqs-consumer": "^1.1.0",
     "@janiscommerce/superstruct": "^1.2.2",
     "bson": "^6.10.4"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
