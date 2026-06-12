@@ -93,7 +93,7 @@ describe('Export DLQ Consumer', () => {
 		sqsMock.restore();
 	});
 
-	it('Should process valid record, assume role and send message to error queue', async () => {
+	it('Should process valid record, assume role and send message with descriptive errorMessage to error queue', async () => {
 
 		await SQSHandler.handle(ExportDLQConsumer, validEvent);
 
@@ -102,7 +102,7 @@ describe('Export DLQ Consumer', () => {
 			MessageBody: JSON.stringify({
 				exportId,
 				entity,
-				errorMessage: 'Original error'
+				errorMessage: 'Export generation aborted after max attempts (likely timeout or repeated failure)'
 			})
 		}]);
 	});
