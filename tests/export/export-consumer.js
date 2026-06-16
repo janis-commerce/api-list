@@ -764,6 +764,58 @@ describe('Export SQS Consumer', () => {
 
 			sinon.assert.notCalled(IterativeSQSConsumer.prototype.addFailedMessage);
 		});
+
+		it('Should cut earlier when EXPORT_GENERATION_BUDGET_MS lowers the budget (hot-tunable for testing)', async () => {
+
+			// 5s budget: a part that took 5s tripped it (5000 + 5000*1.25 > 5000), while the default 720s would not
+			process.env.EXPORT_GENERATION_BUDGET_MS = '5000';
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async (params, callback) => {
+
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+					]);
+
+					clock.tick(5 * 1000);
+
+					// closes part 1 -> budget check fires with the lowered budget -> stopped + sentinel
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+					]);
+
+					// never reached
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2cb', name: 'Product 3' }
+					]);
+				});
+
+			await SQSHandler.handle(SingleRowPerFileConsumer, validEvent);
+
+			assertSendMessage([{
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 1,
+					isLastPart: false,
+					stopped: true,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+					pageSize: 1,
+					rowsPerFile: 1,
+					rowsCount: 1,
+					lastId: '693beee89a9dde1d3edcf2c9',
+					dateStart: currentDate.toISOString(),
+					dateEnd: new Date().toISOString()
+				})
+			}]);
+
+			sinon.assert.notCalled(IterativeSQSConsumer.prototype.addFailedMessage);
+		});
 	});
 
 	describe('startPart', () => {

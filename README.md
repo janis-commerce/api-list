@@ -848,3 +848,5 @@ A single Lambda invocation can run out of time before generating every part of a
 - The in-flight page at the cut boundary belongs to the next part and is discarded; it will be regenerated on resume.
 
 This budget cut is transparent to exports that finish within the budget: they behave exactly as before (same queries, same sort, a single segment, `isLastPart` on the final part).
+
+The budget defaults to 720 seconds and can be overridden with the `EXPORT_GENERATION_BUDGET_MS` environment variable (in milliseconds). It is read per invocation, so it can be tuned hot (without a code deploy) — e.g. lowered in a non-prod environment to force the cut with small datasets and exercise the resume flow end to end.
