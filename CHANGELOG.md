@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `ExportConsumer` time-budget cut for large exports: emits `stopped` + `lastId` and honors `startPart` so the orchestrator resumes by segments; budget and rows-per-file overridable via `EXPORT_GENERATION_BUDGET_MS` / `EXPORT_ROWS_PER_FILE`
+
+### Changed
+- Increased `ExportConsumer` memory size to 3GB
+- DLQ consumer now sends a descriptive error message
 
 ## [9.1.0] - 2026-02-06
 ### Added
