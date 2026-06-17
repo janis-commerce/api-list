@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [9.2.0] - 2026-06-17
 ### Added
 - `ExportConsumer` time-budget cut for large exports: emits `stopped` + `lastId` and honors `startPart` so the orchestrator resumes by segments; budget and rows-per-file overridable via `EXPORT_GENERATION_BUDGET_MS` / `EXPORT_ROWS_PER_FILE`
 
