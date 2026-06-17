@@ -26,6 +26,7 @@ const { ApiListData } = require('../../lib');
 const Uploader = require('../../lib/helpers/uploader');
 
 const ExportConsumer = require('../../lib/export/export-consumer');
+const ExportBudgetExceededError = require('../../lib/export/errors/export-budget-exceeded-error');
 
 const { createEvent } = require('./utils');
 
@@ -44,6 +45,7 @@ describe('Export SQS Consumer', () => {
 
 	let stsMock;
 	let sqsMock;
+	let clock;
 
 	const uuid1 = 'be8a87b3-d766-49d0-bd02-1c174fa9bf3a';
 	const uuid2 = '06d331b9-b90a-404a-996e-ea8b1eb64bf0';
@@ -98,7 +100,7 @@ describe('Export SQS Consumer', () => {
 
 	beforeEach(() => {
 
-		sinon.useFakeTimers(currentDate);
+		clock = sinon.useFakeTimers(currentDate);
 
 		mockRequire(modelPath, ProductModel);
 
@@ -180,6 +182,54 @@ describe('Export SQS Consumer', () => {
 				pageSize: 10000,
 				rowsPerFile: 250000,
 				rowsCount: 2,
+				lastId: '693beee89a9dde1d3edcf2ca',
+				dateStart: currentDate.toISOString(),
+				dateEnd: currentDate.toISOString()
+			})
+		}]);
+	});
+
+	it('Should use raw _id as lastId even when formatRows strips or transforms the id field', async () => {
+
+		class ProductApiList extends ApiListData {
+
+			formatRows(rows) {
+				// strips id entirely, returning only a derived field
+				return rows.map(({ name }) => ({ formattedName: name.toUpperCase() }));
+			}
+		}
+
+		mockRequire(apiListPath, ProductApiList);
+
+		sinon.stub(ProductModel.prototype, 'getPaged')
+			.callsFake((params, callback) => callback.call(null, [
+				{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' },
+				{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+			]));
+
+		await SQSHandler.handle(ExportConsumer, validEvent);
+
+		// uploader receives the formatted (id-less) shape
+		assertUploaderAdd([
+			{ formattedName: 'PRODUCT 1' },
+			{ formattedName: 'PRODUCT 2' }
+		]);
+
+		sinon.assert.calledOnceWithExactly(Uploader.prototype.upload);
+
+		// lastId must be the raw _id of the last original row, not undefined/null
+		assertSendMessage([{
+			QueueUrl: queueUrl,
+			MessageBody: JSON.stringify({
+				exportId,
+				entity,
+				part: 1,
+				isLastPart: true,
+				filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+				pageSize: 10000,
+				rowsPerFile: 250000,
+				rowsCount: 2,
+				lastId: '693beee89a9dde1d3edcf2ca',
 				dateStart: currentDate.toISOString(),
 				dateEnd: currentDate.toISOString()
 			})
@@ -230,6 +280,7 @@ describe('Export SQS Consumer', () => {
 				pageSize: 1,
 				rowsPerFile: 250000,
 				rowsCount: 2,
+				lastId: '693beee89a9dde1d3edcf2ca',
 				dateStart: currentDate.toISOString(),
 				dateEnd: currentDate.toISOString()
 			})
@@ -285,6 +336,7 @@ describe('Export SQS Consumer', () => {
 				pageSize: 1,
 				rowsPerFile: 1,
 				rowsCount: 1,
+				lastId: '693beee89a9dde1d3edcf2c9',
 				dateStart: currentDate.toISOString(),
 				dateEnd: currentDate.toISOString()
 			})
@@ -299,6 +351,7 @@ describe('Export SQS Consumer', () => {
 				pageSize: 1,
 				rowsPerFile: 1,
 				rowsCount: 1,
+				lastId: '693beee89a9dde1d3edcf2ca',
 				dateStart: currentDate.toISOString(),
 				dateEnd: currentDate.toISOString()
 			})
@@ -331,6 +384,7 @@ describe('Export SQS Consumer', () => {
 				pageSize: 10000,
 				rowsPerFile: 250000,
 				rowsCount: 0,
+				lastId: null,
 				dateStart: currentDate.toISOString(),
 				dateEnd: currentDate.toISOString()
 			})
@@ -409,6 +463,7 @@ describe('Export SQS Consumer', () => {
 				pageSize: 10000,
 				rowsPerFile: 250000,
 				rowsCount: 2,
+				lastId: '693beee89a9dde1d3edcf2ca',
 				dateStart: currentDate.toISOString(),
 				dateEnd: currentDate.toISOString()
 			})
@@ -467,6 +522,7 @@ describe('Export SQS Consumer', () => {
 					pageSize: 25000,
 					rowsPerFile: 250000,
 					rowsCount: 2,
+					lastId: '693beee89a9dde1d3edcf2ca',
 					dateStart: currentDate.toISOString(),
 					dateEnd: currentDate.toISOString()
 				})
@@ -519,6 +575,292 @@ describe('Export SQS Consumer', () => {
 					pageSize: 5000,
 					rowsPerFile: 5000,
 					rowsCount: 2,
+					lastId: '693beee89a9dde1d3edcf2ca',
+					dateStart: currentDate.toISOString(),
+					dateEnd: currentDate.toISOString()
+				})
+			}]);
+		});
+	});
+
+	describe('Budget exceeded (large exports)', () => {
+
+		class SingleRowPerFileConsumer extends ExportConsumer {
+			get pageSize() {
+				return 1;
+			}
+
+			get rowsPerFile() {
+				return 1;
+			}
+		}
+
+		it('Should send the part with stopped:true and stop the cursor (sentinel) when the budget is exceeded', async () => {
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async (params, callback) => {
+
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+					]);
+
+					// simulate a slow part: elapsed + lastPartDuration * factor > 720s budget
+					clock.tick(600 * 1000);
+
+					// this page closes part 1 -> budget check fires -> stopped + sentinel
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+					]);
+
+					// never reached: the cursor was stopped by the sentinel
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2cb', name: 'Product 3' }
+					]);
+				});
+
+			await SQSHandler.handle(SingleRowPerFileConsumer, validEvent);
+
+			// only Product 1 was uploaded; the in-flight page (Product 2) was discarded with the cut
+			assertUploaderAdd([
+				{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+			]);
+
+			sinon.assert.calledOnceWithExactly(Uploader.prototype.upload);
+
+			// single part message with stopped:true, no error queue, message ACKed
+			assertSendMessage([{
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 1,
+					isLastPart: false,
+					stopped: true,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+					pageSize: 1,
+					rowsPerFile: 1,
+					rowsCount: 1,
+					lastId: '693beee89a9dde1d3edcf2c9',
+					dateStart: currentDate.toISOString(),
+					dateEnd: new Date().toISOString()
+				})
+			}]);
+
+			sinon.assert.notCalled(IterativeSQSConsumer.prototype.addFailedMessage);
+		});
+
+		it('Should terminate OK when the sentinel is wrapped by the model in a MongoDBError (previousError)', async () => {
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async (params, callback) => {
+
+					try {
+
+						await callback.call(null, [
+							{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+						]);
+
+						clock.tick(600 * 1000);
+
+						await callback.call(null, [
+							{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+						]);
+
+					} catch(error) {
+
+						if(error instanceof ExportBudgetExceededError) {
+							// emulate @janiscommerce/mongodb wrapping the callback throw
+							const wrapped = new Error('MongoDB error');
+							wrapped.name = 'MongoDBError';
+							wrapped.previousError = error;
+							throw wrapped;
+						}
+
+						throw error;
+					}
+				});
+
+			await SQSHandler.handle(SingleRowPerFileConsumer, validEvent);
+
+			assertSendMessage([{
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 1,
+					isLastPart: false,
+					stopped: true,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+					pageSize: 1,
+					rowsPerFile: 1,
+					rowsCount: 1,
+					lastId: '693beee89a9dde1d3edcf2c9',
+					dateStart: currentDate.toISOString(),
+					dateEnd: new Date().toISOString()
+				})
+			}]);
+
+			sinon.assert.notCalled(IterativeSQSConsumer.prototype.addFailedMessage);
+		});
+
+		it('Should not cut when the budget is not exceeded (closes parts and finishes normally)', async () => {
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async (params, callback) => {
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+					]);
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+					]);
+				});
+
+			await SQSHandler.handle(SingleRowPerFileConsumer, validEvent);
+
+			// 2 parts, both closed normally, last one isLastPart
+			assertSendMessage([{
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 1,
+					isLastPart: false,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+					pageSize: 1,
+					rowsPerFile: 1,
+					rowsCount: 1,
+					lastId: '693beee89a9dde1d3edcf2c9',
+					dateStart: currentDate.toISOString(),
+					dateEnd: currentDate.toISOString()
+				})
+			}, {
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 2,
+					isLastPart: true,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid2}.ndjson.gz`,
+					pageSize: 1,
+					rowsPerFile: 1,
+					rowsCount: 1,
+					lastId: '693beee89a9dde1d3edcf2ca',
+					dateStart: currentDate.toISOString(),
+					dateEnd: currentDate.toISOString()
+				})
+			}]);
+
+			sinon.assert.notCalled(IterativeSQSConsumer.prototype.addFailedMessage);
+		});
+
+		it('Should cut earlier when EXPORT_GENERATION_BUDGET_MS lowers the budget (hot-tunable for testing)', async () => {
+
+			// 5s budget: a part that took 5s tripped it (5000 + 5000*1.25 > 5000), while the default 720s would not
+			process.env.EXPORT_GENERATION_BUDGET_MS = '5000';
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async (params, callback) => {
+
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+					]);
+
+					clock.tick(5 * 1000);
+
+					// closes part 1 -> budget check fires with the lowered budget -> stopped + sentinel
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+					]);
+
+					// never reached
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2cb', name: 'Product 3' }
+					]);
+				});
+
+			await SQSHandler.handle(SingleRowPerFileConsumer, validEvent);
+
+			assertSendMessage([{
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 1,
+					isLastPart: false,
+					stopped: true,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+					pageSize: 1,
+					rowsPerFile: 1,
+					rowsCount: 1,
+					lastId: '693beee89a9dde1d3edcf2c9',
+					dateStart: currentDate.toISOString(),
+					dateEnd: new Date().toISOString()
+				})
+			}]);
+
+			sinon.assert.notCalled(IterativeSQSConsumer.prototype.addFailedMessage);
+		});
+	});
+
+	describe('startPart', () => {
+
+		it('Should number parts from record.startPart when provided', async () => {
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake((params, callback) => callback.call(null, [
+					{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' },
+					{ id: '693beee89a9dde1d3edcf2ca', name: 'Product 2' }
+				]));
+
+			const event = createEvent(sqsQueueArn, clientCode, [{
+				exportId,
+				entity,
+				params: EJSON.stringify({}),
+				keyPrefix: `export-dependencies/${clientCode}/${exportId}/${entity}/`,
+				shouldFormatRows: true,
+				queueUrl,
+				errorQueueUrl,
+				startPart: 4,
+				messageData: {
+					exportId,
+					entity
+				}
+			}]);
+
+			await SQSHandler.handle(ExportConsumer, event);
+
+			assertSendMessage([{
+				QueueUrl: queueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					part: 4,
+					isLastPart: true,
+					filename: `export-dependencies/${clientCode}/${exportId}/${entity}/${uuid1}.ndjson.gz`,
+					pageSize: 10000,
+					rowsPerFile: 250000,
+					rowsCount: 2,
+					lastId: '693beee89a9dde1d3edcf2ca',
 					dateStart: currentDate.toISOString(),
 					dateEnd: currentDate.toISOString()
 				})
@@ -547,6 +889,64 @@ describe('Export SQS Consumer', () => {
 					entity,
 					//
 					errorMessage: 'Get paged error',
+					isRetryable: true
+				})
+			}]);
+
+			sinon.assert.calledOnceWithExactly(IterativeSQSConsumer.prototype.addFailedMessage, validEvent.Records[0].messageId);
+		});
+
+		it('Should send a real callback error (not sentinel) to the error queue, keeping the current flow', async () => {
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async (params, callback) => {
+					await callback.call(null, [
+						{ id: '693beee89a9dde1d3edcf2c9', name: 'Product 1' }
+					]);
+					throw new Error('Real cursor error');
+				});
+
+			await SQSHandler.handle(ExportConsumer, validEvent);
+
+			assertSendMessage([{
+				QueueUrl: errorQueueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					errorMessage: 'Real cursor error',
+					isRetryable: true
+				})
+			}]);
+
+			sinon.assert.calledOnceWithExactly(IterativeSQSConsumer.prototype.addFailedMessage, validEvent.Records[0].messageId);
+		});
+
+		it('Should send a wrapped error whose previousError is not the sentinel to the error queue', async () => {
+
+			class ProductApiList extends ApiListData {}
+
+			mockRequire(apiListPath, ProductApiList);
+
+			sinon.stub(ProductModel.prototype, 'getPaged')
+				.callsFake(async () => {
+					const wrapped = new Error('MongoDB error');
+					wrapped.name = 'MongoDBError';
+					wrapped.previousError = new Error('Some other failure');
+					throw wrapped;
+				});
+
+			await SQSHandler.handle(ExportConsumer, validEvent);
+
+			assertSendMessage([{
+				QueueUrl: errorQueueUrl,
+				MessageBody: JSON.stringify({
+					exportId,
+					entity,
+					errorMessage: 'MongoDB error',
 					isRetryable: true
 				})
 			}]);

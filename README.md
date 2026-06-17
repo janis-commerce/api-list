@@ -824,3 +824,29 @@ The consumer automatically:
 4. Applies `formatRows()` if requested
 5. Uploads files to S3 as they reach the `rowsPerFile` limit
 6. Sends progress messages for each completed part
+
+### Part message contract
+
+Each completed part produces an SQS message to the result queue with the following fields (plus a passthrough of every field in the request's `messageData`):
+
+| Field | Description |
+|---|---|
+| `part` | Part number. Starts at `1` by default, or at `startPart` if the request provides it (used to resume large exports). |
+| `isLastPart` | `true` only on the final part of the segment. |
+| `stopped` | Present and `true` **only** when the part is the last one the consumer could complete within its time budget (see below). The orchestrator (batch) uses it to resume the export from a checkpoint. |
+| `lastId` | The `id` of the last row added to the part (`null` when the part has no rows). Lets the orchestrator build the resume cursor. |
+| `filename`, `pageSize`, `rowsPerFile`, `rowsCount`, `dateStart`, `dateEnd` | Part metadata as before. |
+
+The consumer runs the request's `params` exactly as received — it does not interpret sort, modes nor build filters. The orchestrator (batch) builds the complete `params` (sort and cursor filters) for restart/resume.
+
+### Large exports (time budget)
+
+A single Lambda invocation can run out of time before generating every part of a very large export. To avoid the previous hard ceiling (and the retry loop that re-ran the whole export from scratch until it hit the DLQ), the consumer enforces a time budget of **720 seconds** measured from the start of record processing:
+
+- After closing a part, it estimates the duration of the next part (last part duration × a safety factor). If the elapsed time plus that estimate exceeds the budget, the part message is emitted with `stopped: true` and the cursor iteration is stopped.
+- The message is acknowledged (it is **not** sent to the error queue): the part was generated successfully and the orchestrator resumes the export from there.
+- The in-flight page at the cut boundary belongs to the next part and is discarded; it will be regenerated on resume.
+
+This budget cut is transparent to exports that finish within the budget: they behave exactly as before (same queries, same sort, a single segment, `isLastPart` on the final part).
+
+The budget defaults to 720 seconds and can be overridden with the `EXPORT_GENERATION_BUDGET_MS` environment variable (in milliseconds). It is read per invocation, so it can be tuned hot (without a code deploy) — e.g. lowered in a non-prod environment to force the cut with small datasets and exercise the resume flow end to end.
